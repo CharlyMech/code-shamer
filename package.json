@@ -2,7 +2,7 @@
   "name": "code-shamer",
   "displayName": "CodeShamer",
   "description": "Detects bad coding patterns and shames you into writing better code 🔥",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "publisher": "YOUR_PUBLISHER_ID",
   "license": "MIT",
   "repository": {
