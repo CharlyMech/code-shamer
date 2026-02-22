@@ -1,23 +1,183 @@
 {
   "name": "code-shamer",
   "displayName": "CodeShamer",
-  "description": "Measures technical shame in your code 🔥",
-  "version": "0.0.1",
+  "description": "Detects bad coding patterns and shames you into writing better code 🔥",
+  "version": "0.1.0",
+  "publisher": "YOUR_PUBLISHER_ID",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/charlymech/code-shamer"
+  },
   "engines": {
-    "vscode": "^1.109.0"
+    "vscode": "^1.95.0"
   },
   "categories": [
+    "Linters",
     "Other"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "code quality",
+    "linter",
+    "shame",
+    "bad patterns",
+    "code review",
+    "fun"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "code-shamer.helloWorld",
-        "title": "Hello World"
+        "command": "code-shamer.scanWorkspace",
+        "title": "CodeShamer: Scan Workspace",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "code-shamer.showPanel",
+        "title": "CodeShamer: Show Shame Panel"
+      },
+      {
+        "command": "code-shamer.clearCache",
+        "title": "CodeShamer: Clear Cache"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codeshamer",
+          "title": "CodeShamer",
+          "icon": "media/codeshamer-activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "codeshamer": [
+        {
+          "type": "webview",
+          "id": "codeshamer.panelView",
+          "name": "Shame Report"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "code-shamer.scanWorkspace",
+          "when": "view == codeshamer.panelView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CodeShamer",
+      "properties": {
+        "codeShamer.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable CodeShamer analysis"
+        },
+        "codeShamer.enableRoasts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show humorous roast messages after scans"
+        },
+        "codeShamer.enabledLanguages": {
+          "type": "array",
+          "default": [
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact",
+            "python",
+            "java",
+            "cpp",
+            "c",
+            "dart",
+            "php"
+          ],
+          "description": "Language IDs to analyze"
+        },
+        "codeShamer.severityThreshold": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Minimum severity level to report (1 = all, 5 = critical only)"
+        },
+        "codeShamer.excludePatterns": {
+          "type": "array",
+          "default": [
+            "**/node_modules/**",
+            "**/vendor/**",
+            "**/.pnp/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/out/**",
+            "**/.output/**",
+            "**/.vercel/**",
+            "**/.netlify/**",
+            "**/.astro/**",
+            "**/.next/**",
+            "**/.nuxt/**",
+            "**/.svelte-kit/**",
+            "**/.remix/**",
+            "**/.solid/**",
+            "**/.expo/**",
+            "**/.angular/**",
+            "**/.gatsby/**",
+            "**/.docusaurus/**",
+            "**/.cache/**",
+            "**/.turbo/**",
+            "**/.parcel-cache/**",
+            "**/.vite/**",
+            "**/.esbuild/**",
+            "**/.webpack/**",
+            "**/coverage/**",
+            "**/.nyc_output/**",
+            "**/.git/**",
+            "**/.svn/**",
+            "**/.hg/**",
+            "**/.claude/**",
+            "**/.cursor/**",
+            "**/.idea/**",
+            "**/.vscode-test/**",
+            "**/.devcontainer/**",
+            "**/*.min.js",
+            "**/*.min.css",
+            "**/.terraform/**",
+            "**/__pycache__/**",
+            "**/.pytest_cache/**",
+            "**/.mypy_cache/**",
+            "**/.ruff_cache/**",
+            "**/.tox/**"
+          ],
+          "description": "Glob patterns for files to exclude from scanning"
+        },
+        "codeShamer.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically re-scan when files are saved"
+        },
+        "codeShamer.maxFilesToScan": {
+          "type": "number",
+          "default": 5000,
+          "description": "Maximum number of files to scan in the workspace"
+        },
+        "codeShamer.disabledRules": {
+          "type": "array",
+          "default": [],
+          "description": "Rule IDs to disable (e.g. ['js-magic-number', 'common-todo'])"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
@@ -31,7 +191,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.109.0",
+    "@types/vscode": "^1.95.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "typescript-eslint": "^8.54.0",

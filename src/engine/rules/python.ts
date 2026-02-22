@@ -1,0 +1,75 @@
+import { ShamePattern } from "../types";
+
+export const pythonRules: ShamePattern[] = [
+	{
+		id: "py-print",
+		pattern: /\bprint\s*\(/,
+		severity: 2,
+		category: "debug",
+		messageKey: "shame.py.print",
+	},
+	{
+		id: "py-bare-except",
+		pattern: /\bexcept\s*:/,
+		severity: 4,
+		category: "reliability",
+		messageKey: "shame.py.bareExcept",
+	},
+	{
+		id: "py-except-pass",
+		pattern: /except.*:\s*\n\s*pass/,
+		severity: 4,
+		category: "reliability",
+		messageKey: "shame.py.exceptPass",
+		multiline: true,
+	},
+	{
+		id: "py-import-star",
+		pattern: /from\s+\S+\s+import\s+\*/,
+		severity: 3,
+		category: "style",
+		messageKey: "shame.py.importStar",
+	},
+	{
+		id: "py-global",
+		pattern: /\bglobal\s+\w/,
+		severity: 3,
+		category: "style",
+		messageKey: "shame.py.global",
+	},
+	{
+		id: "py-mutable-default",
+		pattern: /def\s+\w+\s*\([^)]*=\s*(\[\]|\{\})/,
+		severity: 4,
+		category: "reliability",
+		messageKey: "shame.py.mutableDefault",
+	},
+	{
+		id: "py-exec",
+		pattern: /\bexec\s*\(/,
+		severity: 5,
+		category: "security",
+		messageKey: "shame.py.exec",
+	},
+	{
+		id: "py-eval",
+		pattern: /\beval\s*\(/,
+		severity: 5,
+		category: "security",
+		messageKey: "shame.py.eval",
+	},
+	{
+		id: "py-hardcoded-password",
+		pattern: /password\s*=\s*["'][^"']+["']/i,
+		severity: 5,
+		category: "security",
+		messageKey: "shame.py.hardcodedPassword",
+	},
+	{
+		id: "py-type-ignore",
+		pattern: /#\s*type:\s*ignore/,
+		severity: 2,
+		category: "maintenance",
+		messageKey: "shame.py.typeIgnore",
+	},
+];

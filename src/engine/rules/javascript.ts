@@ -1,0 +1,88 @@
+import { ShamePattern } from "../types";
+
+export const javascriptRules: ShamePattern[] = [
+	{
+		id: "js-console-log",
+		pattern: /console\.(log|debug|info|trace|table)\s*\(/,
+		severity: 1,
+		category: "debug",
+		messageKey: "shame.js.consoleLog",
+	},
+	{
+		id: "js-var-usage",
+		pattern: /\bvar\s+\w/,
+		severity: 2,
+		category: "style",
+		messageKey: "shame.js.varUsage",
+	},
+	{
+		id: "js-loose-equality",
+		pattern: /[^!=]==[^=]/,
+		severity: 2,
+		category: "reliability",
+		messageKey: "shame.js.looseEquality",
+	},
+	{
+		id: "js-loose-inequality",
+		pattern: /!=[^=]/,
+		severity: 2,
+		category: "reliability",
+		messageKey: "shame.js.looseInequality",
+	},
+	{
+		id: "js-eval",
+		pattern: /\beval\s*\(/,
+		severity: 5,
+		category: "security",
+		messageKey: "shame.js.eval",
+	},
+	{
+		id: "js-debugger",
+		pattern: /\bdebugger\b/,
+		severity: 4,
+		category: "debug",
+		messageKey: "shame.js.debugger",
+	},
+	{
+		id: "js-empty-catch",
+		pattern: /catch\s*\([^)]*\)\s*\{\s*\}/,
+		severity: 3,
+		category: "reliability",
+		messageKey: "shame.js.emptyCatch",
+	},
+	{
+		id: "js-alert",
+		pattern: /\balert\s*\(/,
+		severity: 2,
+		category: "debug",
+		messageKey: "shame.js.alert",
+	},
+	{
+		id: "js-nested-ternary",
+		pattern: /\?[^:]*\?/,
+		severity: 2,
+		category: "style",
+		messageKey: "shame.js.nestedTernary",
+	},
+	{
+		id: "js-new-function",
+		pattern: /new\s+Function\s*\(/,
+		severity: 5,
+		category: "security",
+		messageKey: "shame.js.newFunction",
+	},
+	{
+		id: "js-document-write",
+		pattern: /document\.write\s*\(/,
+		severity: 4,
+		category: "security",
+		messageKey: "shame.js.documentWrite",
+	},
+	{
+		id: "js-settimeout-string",
+		pattern: /setTimeout\s*\(\s*["'`]/,
+		severity: 4,
+		category: "security",
+		messageKey: "shame.js.setTimeoutString",
+	},
+];
