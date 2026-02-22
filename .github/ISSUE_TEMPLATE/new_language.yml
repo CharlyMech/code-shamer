@@ -1,0 +1,54 @@
+name: New Language Support
+description: Request or propose support for a new programming language
+title: "[Language]: "
+labels: ["new-language"]
+body:
+   - type: markdown
+     attributes:
+        value: |
+           Want CodeShamer to support a new language? Tell us about it!
+           If you're contributing, check out [ADDING_LANGUAGES.md](https://github.com/charlymech/code-shamer/blob/main/docs/ADDING_LANGUAGES.md).
+
+   - type: input
+     id: language
+     attributes:
+        label: Language
+        placeholder: "e.g., Ruby, Go, Rust, Kotlin, Swift"
+     validations:
+        required: true
+
+   - type: input
+     id: vscode-language-id
+     attributes:
+        label: VS Code Language ID
+        description: "The ID VS Code uses (shown in bottom-right status bar)"
+        placeholder: "e.g., ruby, go, rust"
+     validations:
+        required: true
+
+   - type: input
+     id: file-extensions
+     attributes:
+        label: File Extensions
+        placeholder: "e.g., .rb, .go, .rs"
+     validations:
+        required: true
+
+   - type: textarea
+     id: patterns
+     attributes:
+        label: Suggested Patterns
+        description: What bad patterns should we detect? List them with regex if possible.
+        placeholder: |
+           - Debug: `puts` / `pp` (severity 2, debug)
+           - Security: `eval()` (severity 5, security)
+           - Style: bare `rescue` (severity 4, reliability)
+     validations:
+        required: true
+
+   - type: checkboxes
+     id: contribution
+     attributes:
+        label: Would you like to contribute this?
+        options:
+           - label: I'm willing to submit a PR for this language

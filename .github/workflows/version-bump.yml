@@ -1,0 +1,88 @@
+name: Auto Version Bump
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    # Only run on merge commits (not direct pushes)
+    if: github.event.head_commit.message != '' && contains(github.event.head_commit.message, 'Merge pull request')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Determine version bump type
+        id: bump
+        run: |
+          # Get the merge commit message which contains the branch name
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "Merge commit: $COMMIT_MSG"
+
+          # Extract the branch name from the merge commit message
+          # Format: "Merge pull request #N from user/branch-name"
+          BRANCH=$(echo "$COMMIT_MSG" | grep -oP '(?<=from )[^ ]+' | head -1)
+          echo "Branch: $BRANCH"
+
+          # Extract prefix from branch name (before the first /)
+          # e.g., "feat/add-ruby" -> "feat", "chore/refactor" -> "chore"
+          PREFIX=$(echo "$BRANCH" | sed 's|.*/||' | grep -oP '^[a-z]+' | head -1)
+
+          # If branch name doesn't have a clear prefix, try the PR title from commit
+          if [ -z "$PREFIX" ]; then
+            PREFIX=$(echo "$COMMIT_MSG" | grep -oiP '^(feat|fix|chore|docs|refactor|style|test|perf|ci|build)' | head -1 | tr '[:upper:]' '[:lower:]')
+          fi
+
+          echo "Detected prefix: $PREFIX"
+
+          case "$PREFIX" in
+            chore|refactor|perf|build)
+              echo "bump=major" >> $GITHUB_OUTPUT
+              ;;
+            feat|feature|style)
+              echo "bump=minor" >> $GITHUB_OUTPUT
+              ;;
+            fix|docs|test|ci|hotfix)
+              echo "bump=patch" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "bump=patch" >> $GITHUB_OUTPUT
+              echo "Unknown prefix '$PREFIX', defaulting to patch"
+              ;;
+          esac
+
+      - name: Bump version
+        run: |
+          BUMP_TYPE=${{ steps.bump.outputs.bump }}
+          echo "Bumping version: $BUMP_TYPE"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Bump version in package.json (no git tag, we tag on main)
+          NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version)
+          echo "New version: $NEW_VERSION"
+
+          # Commit the version bump
+          git add package.json
+          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git push
