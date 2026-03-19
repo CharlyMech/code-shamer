@@ -43,4 +43,12 @@ export const dartRules: ShamePattern[] = [
 		category: "style",
 		messageKey: "shame.dart.runtimeType",
 	},
+	{
+		id: "dart-deep-nesting",
+		pattern: /(?:child|children)[\s\S]{0,100}?(?:child|children)[\s\S]{0,100}?(?:child|children)[\s\S]{0,100}?(?:child|children)/,
+		severity: 4,
+		category: "style",
+		messageKey: "shame.dart.deepNesting",
+		multiline: true,
+	},
 ];

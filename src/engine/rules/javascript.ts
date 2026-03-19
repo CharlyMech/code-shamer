@@ -85,4 +85,20 @@ export const javascriptRules: ShamePattern[] = [
 		category: "security",
 		messageKey: "shame.js.setTimeoutString",
 	},
+	{
+		id: "js-let-array-push",
+		pattern: /let\s+\w+\s*=\s*\[\s*\];[\s\S]{0,150}?\.push\(/,
+		severity: 3,
+		category: "style",
+		messageKey: "shame.js.letArrayPush",
+		multiline: true,
+	},
+	{
+		id: "js-switch-no-break",
+		pattern: /case\s+[^:]+:(?:(?!break|return|throw)[^}])+case\s+/,
+		severity: 5,
+		category: "reliability",
+		messageKey: "shame.js.switchNoBreak",
+		multiline: true,
+	},
 ];

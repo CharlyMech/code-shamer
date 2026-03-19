@@ -29,4 +29,12 @@ export const commonRules: ShamePattern[] = [
 		category: "maintenance",
 		messageKey: "shame.common.xxx",
 	},
+	{
+		id: "common-nested-loops",
+		pattern: /(?:for|while)\s*\([^)]*\)\s*\{[\s\S]{0,200}?(?:for|while)\s*\(/,
+		severity: 4,
+		category: "performance",
+		messageKey: "shame.common.nestedLoops",
+		multiline: true,
+	},
 ];
