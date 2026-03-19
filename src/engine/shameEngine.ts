@@ -19,12 +19,13 @@ export function analyzeFile(
 
 	const lines = content.split("\n");
 	const ignoredLines = getIgnoredLines(lines);
+	const isFileIgnored = lines.some(l => /\bcode-shamer-ignore-file\b/.test(l));
 	const matches: ShameMatch[] = [];
 	let skippedShames = 0;
 
 	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 		const lineText = lines[lineIndex];
-		const isIgnored = ignoredLines.has(lineIndex);
+		const isIgnored = isFileIgnored || ignoredLines.has(lineIndex);
 
 		for (const rule of activeRules) {
 			if (rule.multiline) {
@@ -64,7 +65,7 @@ export function analyzeFile(
 		while ((match = regex.exec(content)) !== null) {
 			const line =
 				content.substring(0, match.index).split("\n").length - 1;
-			if (ignoredLines.has(line)) {
+			if (isFileIgnored || ignoredLines.has(line)) {
 				skippedShames++;
 			} else {
 				matches.push({

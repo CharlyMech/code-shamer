@@ -144,6 +144,35 @@ export class ShameCodeActionProvider implements vscode.CodeActionProvider {
 					actions.push(action);
 				}
 			}
+
+			// Add generic ignore actions
+			const commentPrefix = document.languageId === "html" ? "<!--" : document.languageId === "css" ? "/*" : "//";
+			const commentSuffix = document.languageId === "html" ? " -->" : document.languageId === "css" ? " */" : "";
+			const eol = document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+
+			// 1. Ignore line next line
+			const ignoreLineAction = new vscode.CodeAction("CodeShamer: Ignore this line", vscode.CodeActionKind.QuickFix);
+			ignoreLineAction.edit = new vscode.WorkspaceEdit();
+			ignoreLineAction.edit.insert(document.uri, new vscode.Position(diag.range.start.line, 0), `${commentPrefix} code-shamer-ignore-next-line${commentSuffix}${eol}`);
+			ignoreLineAction.diagnostics = [diag];
+			actions.push(ignoreLineAction);
+
+			// 2. Ignore file
+			const ignoreFileAction = new vscode.CodeAction("CodeShamer: Ignore this entire file", vscode.CodeActionKind.QuickFix);
+			ignoreFileAction.edit = new vscode.WorkspaceEdit();
+			ignoreFileAction.edit.insert(document.uri, new vscode.Position(0, 0), `${commentPrefix} code-shamer-ignore-file${commentSuffix}${eol}`);
+			ignoreFileAction.diagnostics = [diag];
+			actions.push(ignoreFileAction);
+
+			// 3. Disable workspace
+			const disableWorkspaceAction = new vscode.CodeAction(`CodeShamer: Disable rule '${ruleId}' for the whole workspace`, vscode.CodeActionKind.QuickFix);
+			disableWorkspaceAction.command = {
+				command: "code-shamer.disableRuleWorkspace",
+				title: `Disable ${ruleId}`,
+				arguments: [ruleId]
+			};
+			disableWorkspaceAction.diagnostics = [diag];
+			actions.push(disableWorkspaceAction);
 		}
 
 		return actions;
