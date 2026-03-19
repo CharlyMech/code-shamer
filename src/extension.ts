@@ -49,16 +49,16 @@ function _activate(context: vscode.ExtensionContext) {
 		panelProvider.update(result);
 
 		history.record({
-			totalScore: result.totalScore,
+			totalShames: result.totalShames,
+			skippedShames: result.skippedShames,
 			fileCount: result.files.length,
-			shameCount: result.totalShames,
 		});
 
 		achievements.checkAndNotify(history);
 
 		// Show roast message if enabled
 		if (settings.enableRoasts && result.totalShames > 0) {
-			const roastKey = getRandomRoastKey(result.totalScore);
+			const roastKey = getRandomRoastKey(result.totalShames);
 			const roastMessage = locale.roasts[roastKey];
 			if (roastMessage) {
 				vscode.window.setStatusBarMessage(

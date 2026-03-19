@@ -90,12 +90,12 @@ export class ShameTreeProvider
 		// Files sorted by score (worst first), with color indicators
 		const filesWithShames = result.files
 			.filter((f) => f.matches.length > 0)
-			.sort((a, b) => b.totalScore - a.totalScore);
+			.sort((a, b) => b.matches.length - a.matches.length);
 
-		const maxScore = filesWithShames.length > 0 ? filesWithShames[0].totalScore : 0;
+		const maxShames = filesWithShames.length > 0 ? filesWithShames[0].matches.length : 0;
 
 		for (const file of filesWithShames) {
-			const ratio = maxScore > 0 ? file.totalScore / maxScore : 0;
+			const ratio = maxShames > 0 ? file.matches.length / maxShames : 0;
 			const color = ratio > 0.66 ? "red" : ratio > 0.33 ? "orange" : "green";
 			items.push(new ShameFileItem(file, color));
 		}

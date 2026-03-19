@@ -2,9 +2,9 @@ import * as vscode from "vscode";
 
 export interface ShameSnapshot {
 	timestamp: number;
-	totalScore: number;
+	totalShames: number;
+	skippedShames: number;
 	fileCount: number;
-	shameCount: number;
 }
 
 const HISTORY_KEY = "codeshamer.history";
@@ -34,8 +34,8 @@ export class ShameHistory {
 		if (history.length < 2) {
 			return "insufficient";
 		}
-		const recent = history[history.length - 1].totalScore;
-		const previous = history[history.length - 2].totalScore;
+		const recent = history[history.length - 1].totalShames;
+		const previous = history[history.length - 2].totalShames;
 		if (recent < previous) {
 			return "improving";
 		}

@@ -19,7 +19,7 @@ export class ShameSummaryItem extends vscode.TreeItem {
 	}
 }
 
-export class ShameFileItem extends vscode.TreeItem {
+	export class ShameFileItem extends vscode.TreeItem {
 	constructor(
 		public readonly fileResult: FileShameResult,
 		color?: string
@@ -30,7 +30,7 @@ export class ShameFileItem extends vscode.TreeItem {
 		);
 
 		const shameCount = fileResult.matches.length;
-		this.description = `${shameCount} shame${shameCount !== 1 ? "s" : ""} (${fileResult.totalScore} pts)`;
+		this.description = `${shameCount} shame${shameCount !== 1 ? "s" : ""}`;
 		this.resourceUri = vscode.Uri.file(fileResult.filePath);
 		this.contextValue = "shameFile";
 
@@ -43,7 +43,7 @@ export class ShameFileItem extends vscode.TreeItem {
 
 		const md = new vscode.MarkdownString();
 		md.appendMarkdown(
-			`**${shameCount} shame${shameCount !== 1 ? "s" : ""}** | ${fileResult.totalScore} points\n\n`
+			`**${shameCount} shame${shameCount !== 1 ? "s" : ""}**\n\n`
 		);
 		const categories = new Map<string, number>();
 		for (const m of fileResult.matches) {

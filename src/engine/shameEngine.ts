@@ -20,13 +20,11 @@ export function analyzeFile(
 	const lines = content.split("\n");
 	const ignoredLines = getIgnoredLines(lines);
 	const matches: ShameMatch[] = [];
+	let skippedShames = 0;
 
 	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-		if (ignoredLines.has(lineIndex)) {
-			continue;
-		}
-
 		const lineText = lines[lineIndex];
+		const isIgnored = ignoredLines.has(lineIndex);
 
 		for (const rule of activeRules) {
 			if (rule.multiline) {
@@ -36,13 +34,17 @@ export function analyzeFile(
 			const regex = new RegExp(rule.pattern.source, rule.pattern.flags);
 			const match = regex.exec(lineText);
 			if (match) {
-				matches.push({
-					pattern: rule,
-					line: lineIndex,
-					column: match.index,
-					lineText,
-					filePath,
-				});
+				if (isIgnored) {
+					skippedShames++;
+				} else {
+					matches.push({
+						pattern: rule,
+						line: lineIndex,
+						column: match.index,
+						lineText,
+						filePath,
+					});
+				}
 			}
 		}
 	}
@@ -62,7 +64,9 @@ export function analyzeFile(
 		while ((match = regex.exec(content)) !== null) {
 			const line =
 				content.substring(0, match.index).split("\n").length - 1;
-			if (!ignoredLines.has(line)) {
+			if (ignoredLines.has(line)) {
+				skippedShames++;
+			} else {
 				matches.push({
 					pattern: rule,
 					line,
@@ -74,7 +78,5 @@ export function analyzeFile(
 		}
 	}
 
-	const totalScore = matches.reduce((sum, m) => sum + m.pattern.severity, 0);
-
-	return { filePath, languageId, matches, totalScore };
+	return { filePath, languageId, matches, skippedShames };
 }

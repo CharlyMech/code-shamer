@@ -13,6 +13,7 @@ export interface ShamePattern {
 	category: ShameCategory;
 	messageKey: string;
 	multiline?: boolean;
+	fixTemplate?: string;
 }
 
 export interface ShameMatch {
@@ -27,14 +28,15 @@ export interface FileShameResult {
 	filePath: string;
 	languageId: string;
 	matches: ShameMatch[];
-	totalScore: number;
+	skippedShames: number;
 }
 
 export interface WorkspaceShameResult {
 	files: FileShameResult[];
-	totalScore: number;
 	totalShames: number;
+	skippedShames: number;
 	byCategory: Record<ShameCategory, number>;
 	bySeverity: Record<number, number>;
 	timestamp: number;
 }
+

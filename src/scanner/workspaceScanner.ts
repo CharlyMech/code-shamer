@@ -123,11 +123,11 @@ export class WorkspaceScanner {
 	private aggregateResults(files: FileShameResult[]): WorkspaceShameResult {
 		const byCategory = {} as Record<ShameCategory, number>;
 		const bySeverity: Record<number, number> = {};
-		let totalScore = 0;
+		let skippedShames = 0;
 		let totalShames = 0;
 
 		for (const file of files) {
-			totalScore += file.totalScore;
+			skippedShames += file.skippedShames;
 			totalShames += file.matches.length;
 			for (const match of file.matches) {
 				const cat = match.pattern.category;
@@ -139,7 +139,7 @@ export class WorkspaceScanner {
 
 		return {
 			files,
-			totalScore,
+			skippedShames,
 			totalShames,
 			byCategory,
 			bySeverity,
@@ -150,7 +150,7 @@ export class WorkspaceScanner {
 	private emptyResult(): WorkspaceShameResult {
 		return {
 			files: [],
-			totalScore: 0,
+			skippedShames: 0,
 			totalShames: 0,
 			byCategory: {} as Record<ShameCategory, number>,
 			bySeverity: {},
