@@ -1,115 +1,120 @@
 import * as vscode from "vscode";
-import { WorkspaceShameResult } from "../engine/types";
-import {
-	ShameSummaryItem,
-	ShameFileItem,
-	ShameMatchItem,
-} from "./shameTreeItems";
-import { getLocale } from "../i18n";
+import { WorkspaceShameResult, FileShameResult, ShameMatch } from "../engine/types";
 
-type TreeElement = ShameSummaryItem | ShameFileItem | ShameMatchItem;
+export class FolderNode {
+    constructor(public name: string, public path: string, public files: FileShameResult[], public subfolders: Map<string, FolderNode>) {}
+}
+export class FileNode {
+    constructor(public file: FileShameResult) {}
+}
+export class MatchNode {
+    constructor(public match: ShameMatch) {}
+}
 
-export class ShameTreeProvider
-	implements vscode.TreeDataProvider<TreeElement>
-{
-	private _onDidChangeTreeData = new vscode.EventEmitter<void>();
-	readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+export type ShameTreeNode = FolderNode | FileNode | MatchNode;
 
-	private result: WorkspaceShameResult | undefined;
-	private _loading = false;
+export class ShameTreeProvider implements vscode.TreeDataProvider<ShameTreeNode> {
+    private _onDidChangeTreeData: vscode.EventEmitter<ShameTreeNode | undefined | void> = new vscode.EventEmitter<ShameTreeNode | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<ShameTreeNode | undefined | void> = this._onDidChangeTreeData.event;
+    private result?: WorkspaceShameResult;
 
-	setLoading(loading: boolean): void {
-		this._loading = loading;
-		this._onDidChangeTreeData.fire();
-	}
+    update(result: WorkspaceShameResult): void {
+        this.result = result;
+        this._onDidChangeTreeData.fire();
+    }
 
-	update(result: WorkspaceShameResult): void {
-		this.result = result;
-		this._loading = false;
-		this._onDidChangeTreeData.fire();
-	}
+    setLoading() {
+        this.result = undefined;
+        this._onDidChangeTreeData.fire();
+    }
 
-	getTreeItem(element: TreeElement): vscode.TreeItem {
-		return element;
-	}
+    getTreeItem(element: ShameTreeNode): vscode.TreeItem {
+        if (element instanceof FolderNode) {
+            const sum = element.files.reduce((a, b) => a + b.matches.length, 0) + 
+                        Array.from(element.subfolders.values()).reduce((a, b) => a + this.countShames(b), 0);
+            const item = new vscode.TreeItem(element.name, vscode.TreeItemCollapsibleState.Expanded);
+            item.description = `${sum}`;
+            item.resourceUri = vscode.Uri.file(element.path);
+            item.iconPath = vscode.ThemeIcon.Folder;
+            return item;
+        } else if (element instanceof FileNode) {
+            const fileName = element.file.filePath.split(/[/\\]/).pop() || "File";
+            const item = new vscode.TreeItem(fileName, vscode.TreeItemCollapsibleState.Collapsed);
+            item.description = `${element.file.matches.length}`;
+            item.resourceUri = vscode.Uri.file(element.file.filePath); 
+            item.iconPath = vscode.ThemeIcon.File;
+            
+            item.contextValue = "shameFile";
+            item.command = {
+                command: 'vscode.open',
+                title: 'Open File',
+                arguments: [item.resourceUri]
+            };
+            return item;
+        } else if (element instanceof MatchNode) {
+            const preview = element.match.lineText.trim().substring(0, 60);
+            const item = new vscode.TreeItem(`L${element.match.line + 1}  ${preview}`, vscode.TreeItemCollapsibleState.None);
+            
+            const uri = vscode.Uri.file(element.match.filePath);
+            const pos = new vscode.Position(element.match.line, element.match.column);
+            
+            item.command = {
+                command: 'vscode.open',
+                title: 'Open File',
+                arguments: [uri, { selection: new vscode.Range(pos, pos) }]
+            };
+            return item;
+        }
+        return new vscode.TreeItem("");
+    }
 
-	getChildren(element?: TreeElement): TreeElement[] {
-		if (this._loading) {
-			return [
-				new ShameSummaryItem(
-					"Scanning workspace...",
-					"Please wait",
-					"loading~spin"
-				),
-			];
-		}
+    private countShames(folder: FolderNode): number {
+        let sum = folder.files.reduce((a, b) => a + b.matches.length, 0);
+        for (const sub of folder.subfolders.values()) {
+            sum += this.countShames(sub);
+        }
+        return sum;
+    }
 
-		if (!this.result) {
-			return [
-				new ShameSummaryItem(
-					"No scan results yet",
-					"Click refresh to scan",
-					"info"
-				),
-			];
-		}
-
-		if (!element) {
-			return this.getRootChildren();
-		}
-
-		if (element instanceof ShameFileItem) {
-			return element.fileResult.matches.map(
-				(m) => new ShameMatchItem(m)
-			);
-		}
-
-		return [];
-	}
-
-	private getRootChildren(): TreeElement[] {
-		const result = this.result!;
-		const items: TreeElement[] = [];
-
-		// Category summary
-		const categories = Object.entries(result.byCategory);
-		if (categories.length > 0) {
-			const categorySummary = categories
-				.sort(([, a], [, b]) => b - a)
-				.map(([cat, count]) => `${cat}: ${count}`)
-				.join(", ");
-			items.push(
-				new ShameSummaryItem(
-					"By Category",
-					categorySummary,
-					"tag"
-				)
-			);
-		}
-
-		// Files sorted by score (worst first), with color indicators
-		const filesWithShames = result.files
-			.filter((f) => f.matches.length > 0)
-			.sort((a, b) => b.matches.length - a.matches.length);
-
-		const maxShames = filesWithShames.length > 0 ? filesWithShames[0].matches.length : 0;
-
-		for (const file of filesWithShames) {
-			const ratio = maxShames > 0 ? file.matches.length / maxShames : 0;
-			const color = ratio > 0.66 ? "red" : ratio > 0.33 ? "orange" : "green";
-			items.push(new ShameFileItem(file, color));
-		}
-
-		if (filesWithShames.length === 0) {
-			items.push(
-				new ShameSummaryItem(
-					"\u2728 No shames found!",
-					"Your code is clean",
-					"check"
-				)
-			);
-		}
-
-		return items;
-	}
+    getChildren(element?: ShameTreeNode): vscode.ProviderResult<ShameTreeNode[]> {
+        if (!this.result) {
+            return [];
+        }
+        if (!element) {
+            const filesWithShames = this.result.files.filter(f => f.matches.length > 0);
+            if (filesWithShames.length === 0) {
+                return [];
+            }
+            
+            const root = new FolderNode("root", "", [], new Map());
+            
+            for (const f of filesWithShames) {
+                const relPath = vscode.workspace.asRelativePath(f.filePath);
+                const parts = relPath.split(/[/\\]/);
+                let current = root;
+                for (let i = 0; i < parts.length - 1; i++) {
+                    const part = parts[i];
+                    const partPath = parts.slice(0, i + 1).join("/");
+                    if (!current.subfolders.has(part)) {
+                        current.subfolders.set(part, new FolderNode(part, partPath, [], new Map()));
+                    }
+                    current = current.subfolders.get(part)!;
+                }
+                current.files.push(f);
+            }
+            
+            return [
+                ...Array.from(root.subfolders.values()),
+                ...root.files.map(f => new FileNode(f))
+            ].sort((a,b) => (a instanceof FolderNode && b instanceof FileNode) ? -1 : (a instanceof FileNode && b instanceof FolderNode) ? 1 : 0);
+        } else if (element instanceof FolderNode) {
+            return [
+                ...Array.from(element.subfolders.values()),
+                ...element.files.map(f => new FileNode(f))
+            ].sort((a,b) => (a instanceof FolderNode && b instanceof FileNode) ? -1 : (a instanceof FileNode && b instanceof FolderNode) ? 1 : 0);
+        } else if (element instanceof FileNode) {
+            return element.file.matches.map(m => new MatchNode(m));
+        }
+        return [];
+    }
 }
