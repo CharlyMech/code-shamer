@@ -47,6 +47,33 @@
       {
         "command": "code-shamer.clearCache",
         "title": "CodeShamer: Clear Cache"
+      },
+      {
+        "command": "code-shamer.disableRuleWorkspace",
+        "title": "CodeShamer: Disable Rule in Workspace"
+      },
+      {
+        "command": "code-shamer.scanCurrentFile",
+        "title": "CodeShamer: Review Fixes",
+        "icon": {
+          "light": "media/codeshamer-activity.svg",
+          "dark": "media/codeshamer-activity.svg"
+        }
+      },
+      {
+        "command": "code-shamer.reviewFixes",
+        "title": "CodeShamer: Review Fixes (Diff)",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "code-shamer.scanning",
+        "title": "CodeShamer: Scanning...",
+        "icon": "$(sync~spin)"
+      },
+      {
+        "command": "code-shamer.showFileShames",
+        "title": "CodeShamer: Shame Detected!",
+        "icon": "$(flame)"
       }
     ],
     "viewsContainers": {
@@ -63,11 +90,40 @@
         {
           "type": "webview",
           "id": "codeshamer.panelView",
-          "name": "Shame Report"
+          "name": "Summary"
+        },
+        {
+          "type": "tree",
+          "id": "codeshamer.treeView",
+          "name": "Files"
         }
       ]
     },
     "menus": {
+      "view/item/context": [
+        {
+          "command": "code-shamer.reviewFixes",
+          "when": "view == codeshamer.treeView && viewItem == shameFile",
+          "group": "inline"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "code-shamer.scanCurrentFile",
+          "group": "navigation",
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.fileState != 'shames' && !codeShamer.isScanning"
+        },
+        {
+          "command": "code-shamer.scanning",
+          "group": "navigation",
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.isScanning"
+        },
+        {
+          "command": "code-shamer.showFileShames",
+          "group": "navigation",
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.fileState == 'shames' && !codeShamer.isScanning"
+        }
+      ],
       "view/title": [
         {
           "command": "code-shamer.scanWorkspace",
