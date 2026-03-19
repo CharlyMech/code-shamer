@@ -27,8 +27,8 @@ const ACHIEVEMENTS: Achievement[] = [
 			const hist = h.getHistory();
 			return (
 				hist.length >= 2 &&
-				hist[hist.length - 1].totalScore <
-					hist[hist.length - 2].totalScore
+				hist[hist.length - 1].totalShames <
+				hist[hist.length - 2].totalShames
 			);
 		},
 	},
@@ -43,8 +43,8 @@ const ACHIEVEMENTS: Achievement[] = [
 				return false;
 			}
 			return (
-				hist[hist.length - 1].totalScore <=
-				hist[0].totalScore * 0.5
+				hist[hist.length - 1].totalShames <=
+				hist[0].totalShames * 0.5
 			);
 		},
 	},
@@ -55,7 +55,7 @@ const ACHIEVEMENTS: Achievement[] = [
 		icon: "$(star-full)",
 		check: (h) => {
 			const hist = h.getHistory();
-			return hist.length > 0 && hist[hist.length - 1].totalScore === 0;
+			return hist.length > 0 && hist[hist.length - 1].totalShames === 0;
 		},
 	},
 	{
@@ -70,7 +70,7 @@ const ACHIEVEMENTS: Achievement[] = [
 const UNLOCKED_KEY = "codeshamer.achievements";
 
 export class AchievementTracker {
-	constructor(private context: vscode.ExtensionContext) {}
+	constructor(private context: vscode.ExtensionContext) { }
 
 	checkAndNotify(history: ShameHistory): void {
 		const locale = getLocale();
