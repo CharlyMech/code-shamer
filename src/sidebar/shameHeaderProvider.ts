@@ -67,11 +67,11 @@ export class ShameHeaderProvider implements vscode.WebviewViewProvider {
 	}
 
 	private _getHtml(result: WorkspaceShameResult): string {
-		const level = getShameLevel(result.totalScore);
+		const level = getShameLevel(result.totalShames);
 		const locale = getLocale();
 		const levelTitle = locale.levels[level.titleKey] ?? level.titleKey;
 
-		const roastKey = getRandomRoastKey(result.totalScore);
+		const roastKey = getRandomRoastKey(result.totalShames);
 		const roastMessage = locale.roasts[roastKey] ?? "";
 
 		const imageUri = this._view!.webview.asWebviewUri(
@@ -143,7 +143,7 @@ export class ShameHeaderProvider implements vscode.WebviewViewProvider {
 		<img src="${imageUri}" alt="${levelTitle}" />
 	</div>
 	<div class="level-title">${level.emoji} ${this._escapeHtml(levelTitle)}</div>
-	<div class="stats">${result.totalScore} pts | ${result.totalShames} shames | ${result.files.filter(f => f.matches.length > 0).length} files</div>
+	<div class="stats">${result.totalShames} shames | ${result.files.filter(f => f.matches.length > 0).length} files</div>
 	<div class="roast">"${this._escapeHtml(roastMessage)}"</div>
 	<div class="divider"></div>
 </body>

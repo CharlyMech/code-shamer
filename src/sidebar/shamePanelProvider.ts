@@ -73,10 +73,10 @@ body { display:flex; align-items:center; justify-content:center; height:200px; m
 	}
 
 	private _getHtml(result: WorkspaceShameResult): string {
-		const level = getShameLevel(result.totalScore);
+		const level = getShameLevel(result.totalShames);
 		const locale = getLocale();
 		const levelTitle = locale.levels[level.titleKey] ?? level.titleKey;
-		const roastKey = getRandomRoastKey(result.totalScore);
+		const roastKey = getRandomRoastKey(result.totalShames);
 		const roastMessage = locale.roasts[roastKey] ?? "";
 
 		const imageUri = this._view!.webview.asWebviewUri(
@@ -85,12 +85,12 @@ body { display:flex; align-items:center; justify-content:center; height:200px; m
 
 		const filesWithShames = result.files
 			.filter((f) => f.matches.length > 0)
-			.sort((a, b) => b.totalScore - a.totalScore);
+			.sort((a, b) => b.matches.length - a.matches.length);
 
-		const maxScore = filesWithShames.length > 0 ? filesWithShames[0].totalScore : 1;
+		const maxShames = filesWithShames.length > 0 ? filesWithShames[0].matches.length : 1;
 
 		const fileListHtml = filesWithShames.length > 0
-			? filesWithShames.map((f) => this._renderFile(f, maxScore)).join("")
+			? filesWithShames.map((f) => this._renderFile(f, maxShames)).join("")
 			: `<div class="empty">&#10024; No shames found! Your code is clean.</div>`;
 
 		const categoriesHtml = this._renderCategories(result);
@@ -218,7 +218,7 @@ body {
   <div class="banner">
     <div class="banner-image"><img src="${imageUri}" alt="${this._esc(levelTitle)}" /></div>
     <div class="level-title">${level.emoji} ${this._esc(levelTitle)}</div>
-    <div class="stats">${result.totalScore} pts &middot; ${result.totalShames} shames &middot; ${filesWithShames.length} files</div>
+    <div class="stats">${result.totalShames} shames &middot; ${result.skippedShames} skipped &middot; ${filesWithShames.length} files</div>
     <div class="roast">&ldquo;${this._esc(roastMessage)}&rdquo;</div>
     ${categoriesHtml}
   </div>
@@ -262,8 +262,8 @@ document.querySelectorAll('.match-item').forEach(el => {
 		return `<div class="categories">${badges}</div>`;
 	}
 
-	private _renderFile(file: FileShameResult, maxScore: number): string {
-		const ratio = maxScore > 0 ? file.totalScore / maxScore : 0;
+	private _renderFile(file: FileShameResult, maxShames: number): string {
+		const ratio = maxShames > 0 ? file.matches.length / maxShames : 0;
 		const color = this._scoreColor(ratio);
 		const relPath = vscode.workspace.asRelativePath(file.filePath);
 
@@ -284,7 +284,7 @@ document.querySelectorAll('.match-item').forEach(el => {
 				<div class="file-name" title="${this._esc(relPath)}">${this._esc(relPath)}</div>
 				<div class="file-stats">${file.matches.length} shame${file.matches.length !== 1 ? "s" : ""}</div>
 			</div>
-			<div class="file-score" style="color:${color}">${file.totalScore}</div>
+			<div class="file-score" style="color:${color}">${file.matches.length}</div>
 		</div>
 		<div class="matches">${matchesHtml}</div>`;
 	}
