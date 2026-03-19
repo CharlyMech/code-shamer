@@ -98,10 +98,10 @@
             "typescriptreact",
             "python",
             "java",
-            "cpp",
-            "c",
             "dart",
-            "php"
+            "php",
+            "html",
+            "css"
           ],
           "description": "Language IDs to analyze"
         },

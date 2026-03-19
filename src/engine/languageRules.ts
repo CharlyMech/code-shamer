@@ -3,8 +3,8 @@ import { javascriptRules } from "./rules/javascript";
 import { typescriptRules } from "./rules/typescript";
 import { pythonRules } from "./rules/python";
 import { javaRules } from "./rules/java";
-import { cppRules } from "./rules/cpp";
-import { cRules } from "./rules/c";
+import { htmlRules } from "./rules/html";
+import { cssRules } from "./rules/css";
 import { dartRules } from "./rules/dart";
 import { phpRules } from "./rules/php";
 import { commonRules } from "./rules/common";
@@ -16,10 +16,10 @@ const languageSpecificRules: Record<string, ShamePattern[]> = {
 	typescriptreact: [...javascriptRules, ...typescriptRules],
 	python: pythonRules,
 	java: javaRules,
-	cpp: cppRules,
-	c: cRules,
 	dart: dartRules,
 	php: phpRules,
+	html: htmlRules,
+	css: cssRules,
 };
 
 export function getRulesForLanguage(languageId: string): ShamePattern[] {
