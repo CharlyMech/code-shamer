@@ -189,6 +189,18 @@ Guía completa paso a paso con capturas de pantalla y solución de problemas: **
 
 ---
 
+## Roadmap / Próximamente 🚀
+
+Seguimos trabajando para hacer que CodeShamer sea aún más despiadado. Esto es lo que tenemos planeado para futuras versiones:
+
+- **Underlined Shames**: Mejoras en las decoraciones del editor (subrayado) para indicar exactamente qué parte de la línea ha provocado la vergüenza.
+- **Split View for Shame Actions**: Una interfaz interactiva de vista dividida (split view) directamente desde el menú de Quick Fix (Acciones Rápidas) para previsualizar cómo quedará tu código tras aplicar los arreglos.
+- **Git Blame Integration**: Detección automática de *quién* escribió el código desastroso para incluir su `@usuario` de Git directamente en el roast de burla.
+- **Custom Project Rules (`.codeshamerrc`)**: Define reglas específicas para tu equipo o proyecto comprobando mediante Regex (Expresiones Regulares) las convenciones propias.
+- **Framework-Specific Shaming**: Soporte nativo y reglas avanzadas para Angular, Vue, Spring Boot, React Native & Expo, ¡y muchos más!
+
+---
+
 ## Contribuir
 
 CodeShamer es de código abierto y las contribuciones son bienvenidas — especialmente nuevas reglas de lenguaje.
