@@ -3,7 +3,9 @@ import { createStatusBar } from "./statusBar";
 import { WorkspaceScanner } from "./scanner/workspaceScanner";
 import { ShameDiagnosticsManager } from "./diagnostics";
 import { ShamePanelProvider } from "./sidebar/shamePanelProvider";
+import { ShameTreeProvider } from "./sidebar/shameTreeProvider";
 import { ShameCodeActionProvider } from "./codeActions/shameCodeActionProvider";
+import { CodeShamerFixProvider } from "./diff/fixProvider";
 import { ShameHistory } from "./history/shameHistory";
 import { AchievementTracker } from "./history/achievements";
 import { getSettings } from "./settings";
@@ -29,6 +31,7 @@ function _activate(context: vscode.ExtensionContext) {
 	const scanner = new WorkspaceScanner();
 	const diagnostics = new ShameDiagnosticsManager();
 	const panelProvider = new ShamePanelProvider(context.extensionUri);
+	const treeProvider = new ShameTreeProvider();
 	const history = new ShameHistory(context);
 	const achievements = new AchievementTracker(context);
 
@@ -37,6 +40,14 @@ function _activate(context: vscode.ExtensionContext) {
 		vscode.window.registerWebviewViewProvider(
 			ShamePanelProvider.viewType,
 			panelProvider
+		),
+		vscode.workspace.registerTextDocumentContentProvider(
+			CodeShamerFixProvider.scheme,
+			new CodeShamerFixProvider()
+		),
+		vscode.window.registerTreeDataProvider(
+			"codeshamer.treeView",
+			treeProvider
 		)
 	);
 
@@ -47,6 +58,7 @@ function _activate(context: vscode.ExtensionContext) {
 	scanner.onDidScanComplete((result) => {
 		diagnostics.update(result);
 		panelProvider.update(result);
+		treeProvider.update(result);
 
 		history.record({
 			totalShames: result.totalShames,
@@ -61,24 +73,19 @@ function _activate(context: vscode.ExtensionContext) {
 			const roastKey = getRandomRoastKey(result.totalShames);
 			const roastMessage = locale.roasts[roastKey];
 			if (roastMessage) {
-				vscode.window.setStatusBarMessage(
-					`$(flame) ${roastMessage}`,
-					5000
-				);
+				vscode.window.setStatusBarMessage(`$(flame) ${roastMessage}`, 5000);
 			}
 		}
 	});
 
 	// Commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand(
-			"code-shamer.scanWorkspace",
-			async () => {
-				panelProvider.setLoading();
-				statusBar.setLoading();
-				await scanner.scanWorkspace();
-			}
-		),
+		vscode.commands.registerCommand("code-shamer.scanWorkspace", async () => {
+			panelProvider.setLoading();
+			treeProvider.setLoading();
+			statusBar.setLoading();
+			await scanner.scanWorkspace();
+		}),
 
 		vscode.commands.registerCommand("code-shamer.showPanel", () => {
 			vscode.commands.executeCommand("codeshamer.panelView.focus");
@@ -90,6 +97,108 @@ function _activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage(
 				"CodeShamer: Cache cleared. Run scan again."
 			);
+		}),
+
+		vscode.commands.registerCommand(
+			"code-shamer.disableRuleWorkspace",
+			async (ruleId: string) => {
+				if (!ruleId) {
+					return;
+				}
+				const config = vscode.workspace.getConfiguration("codeShamer");
+				const disabled = config.get<string[]>("disabledRules") || [];
+				if (!disabled.includes(ruleId)) {
+					await config.update(
+						"disabledRules",
+						[...disabled, ruleId],
+						vscode.ConfigurationTarget.Workspace
+					);
+					vscode.window.showInformationMessage(
+						`CodeShamer: Rule '${ruleId}' has been disabled in the workspace.`
+					);
+					scanner.clearCache();
+				}
+			}
+		),
+
+		vscode.commands.registerCommand(
+			"code-shamer.scanCurrentFile",
+			async (fileUri?: vscode.Uri) => {
+				const uri = fileUri || vscode.window.activeTextEditor?.document.uri;
+				if (!uri) {
+					return;
+				}
+
+				vscode.commands.executeCommand(
+					"setContext",
+					"codeShamer.isScanning",
+					true
+				);
+
+				const fixUri = vscode.Uri.parse(
+					`${CodeShamerFixProvider.scheme}:${uri.path}?${uri.toString()}`
+				);
+				const fileName = uri.path.split("/").pop() || "File";
+				await vscode.commands.executeCommand(
+					"vscode.diff",
+					uri,
+					fixUri,
+					`CodeShamer: ${fileName} ↔ Fixed`
+				);
+
+				vscode.commands.executeCommand(
+					"setContext",
+					"codeShamer.isScanning",
+					false
+				);
+				const result = scanner.lastResult?.files.find(
+					(f) => f.filePath === uri.fsPath
+				);
+				const hasShames = result ? result.matches.length > 0 : false;
+				vscode.commands.executeCommand(
+					"setContext",
+					"codeShamer.fileState",
+					hasShames ? "shames" : "clean"
+				);
+			}
+		),
+
+		vscode.commands.registerCommand(
+			"code-shamer.showFileShames",
+			(uri?: vscode.Uri) => {
+				vscode.commands.executeCommand("code-shamer.scanCurrentFile", uri);
+			}
+		),
+
+		vscode.commands.registerCommand(
+			"code-shamer.reviewFixes",
+			(arg?: any) => {
+				let uri: vscode.Uri | undefined;
+				if (arg instanceof vscode.Uri) uri = arg;
+				else if (arg && arg.resourceUri instanceof vscode.Uri)
+					uri = arg.resourceUri;
+				else if (arg && arg.file && typeof arg.file.filePath === "string")
+					uri = vscode.Uri.file(arg.file.filePath);
+				vscode.commands.executeCommand("code-shamer.scanCurrentFile", uri);
+			}
+		),
+
+		vscode.commands.registerCommand("code-shamer.scanning", () => {})
+	);
+
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveTextEditor((editor) => {
+			if (editor) {
+				const result = scanner.lastResult?.files.find(
+					(f) => f.filePath === editor.document.uri.fsPath
+				);
+				const hasShames = result ? result.matches.length > 0 : false;
+				vscode.commands.executeCommand(
+					"setContext",
+					"codeShamer.fileState",
+					hasShames ? "shames" : "clean"
+				);
+			}
 		})
 	);
 
