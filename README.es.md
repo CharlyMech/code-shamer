@@ -189,15 +189,24 @@ Guía completa paso a paso con capturas de pantalla y solución de problemas: **
 
 ---
 
-## Roadmap / Próximamente 🚀
+## Estado Actual y Roadmap 🚀
 
-Seguimos trabajando para hacer que CodeShamer sea aún más despiadado. Esto es lo que tenemos planeado para futuras versiones:
+### 🚧 Trabajando actualmente en (Working on)
+- **Split View y Acciones**: Mejorando la interfaz interactiva de Diff para aplicar e ignorar shames de forma nativa.
+- **Mejoras del Shame Engine**: Mejor parseo de Regex, evadiendo falsos positivos en strings y auto-fixes más inteligentes.
+- **UI y UX**: Puliendo los iconos de la barra del editor, CodeLenses y la barra lateral responsiva.
 
-- **Underlined Shames**: Mejoras en las decoraciones del editor (subrayado) para indicar exactamente qué parte de la línea ha provocado la vergüenza.
-- **Split View for Shame Actions**: Una interfaz interactiva de vista dividida (split view) directamente desde el menú de Quick Fix (Acciones Rápidas) para previsualizar cómo quedará tu código tras aplicar los arreglos.
-- **Git Blame Integration**: Detección automática de *quién* escribió el código desastroso para incluir su `@usuario` de Git directamente en el roast de burla.
-- **Custom Project Rules (`.codeshamerrc`)**: Define reglas específicas para tu equipo o proyecto comprobando mediante Regex (Expresiones Regulares) las convenciones propias.
-- **Framework-Specific Shaming**: Soporte nativo y reglas avanzadas para Angular, Vue, Spring Boot, React Native & Expo, ¡y muchos más!
+### 📝 TODO (Pendiente)
+- Optimizar el rendimiento del escaneo en espacios de trabajo gigantes mediante mejoras en la caché.
+- Añadir reglas multilinea más complejas para detectar antipatrones estructurales.
+- Mejorar la cobertura de tests unitarios del Shame Engine.
+
+### ✨ Próximas Funcionalidades (Propuestas)
+- **Integración con Git Blame**: Leer automáticamente `git blame` y criticar directamente al compañero de equipo que escribió el mal código mencionándolo por su nombre.
+- **Archivos Custom (`.codeshamerrc`)**: Permitir a los equipos definir sus propias reglas Regex personalizadas o desactivar roasts específicos por proyecto.
+- **Roasts generados por IA**: Integrar conexión con LLM para generar críticas completamente únicas y dinámicas basadas en los nombres de variables reales del código.
+- **Reglas específicas de Frameworks**: Soporte nativo para React, Angular, Vue, Spring Boot y React Native.
+- **GitHub Action (CI/CD)**: Un bot de PR que comente automáticamente los shames que se intenten colar en las Pull Requests de tu equipo.
 
 ---
 

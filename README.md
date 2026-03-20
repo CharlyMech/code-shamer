@@ -189,15 +189,24 @@ Full walkthrough with screenshots and troubleshooting: **[GETTING_STARTED.md](do
 
 ---
 
-## Roadmap / Coming Soon 🚀
+## Current Status & Roadmap 🚀
 
-We are constantly working to make CodeShamer even more ruthless. Here's what's planned for upcoming versions:
+### 🚧 Currently Working On
+- **Split View & Actions**: Enhancing the interactive diff interface for applying and ignoring shames natively.
+- **Shame Engine Improvements**: Better regex parsing, avoiding false positives in strings, and smarter auto-fixes.
+- **UI & UX**: Polishing Editor Toolbar icons, CodeLenses, and responsive sidebars.
 
-- **Underlined Shames**: Improved inline editor decorations indicating exactly what part of the line triggered the shame.
-- **Split View for Shame Actions**: An interactive split-view interface directly from the Quick Fix menu to preview how your code will look after applying shames.
-- **Git Blame Integration**: Automatically detects *who* wrote the shamed code and includes their git handle in the roast.
+### 📝 TODO (Pending)
+- Optimize large-workspace scanning performance with better caching.
+- Add more comprehensive multi-line shame rules.
+- Improve test coverage for the Shame Engine rules.
+
+### ✨ Next Features (Proposed)
+- **Git Blame Integration**: Automatically read `git blame` and roast the specific teammate who wrote the bad code by name.
 - **Custom Project Rules (`.codeshamerrc`)**: Define your own team-specific project rules using Regex to enforce custom conventions.
+- **AI-Powered Roasts**: Integrate with an LLM to generate dynamic, completely unique roasts based on the actual variable names used contextually.
 - **Framework-Specific Shaming**: Native support and advanced rules for Angular, Vue, Spring Boot, React Native & Expo, and more!
+- **CI/CD Action**: A GitHub Action that automatically comments on PRs with the shames introduced in the new code.
 
 ---
 
