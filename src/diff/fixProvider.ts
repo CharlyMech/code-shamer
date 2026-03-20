@@ -31,7 +31,7 @@ export class CodeShamerFixProvider implements vscode.TextDocumentContentProvider
             } else if (id === "js-loose-inequality") {
                 lines[match.line] = lineText.replace(/!=([^=])/, "!==$1");
             } else if (id === "js-debugger" || id === "js-console-log" || id === "js-alert") {
-                lines[match.line] = "// " + lineText + " // Removed by CodeShamer";
+                lines[match.line] = ""; // Completely remove instead of commenting
             }
         }
         

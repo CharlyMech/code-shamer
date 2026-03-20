@@ -173,6 +173,20 @@ export class ShameCodeActionProvider implements vscode.CodeActionProvider {
 			};
 			disableWorkspaceAction.diagnostics = [diag];
 			actions.push(disableWorkspaceAction);
+
+			// 4. Show recommended fix in Split View
+			const showFixAction = new vscode.CodeAction(
+				"✨ CodeShamer: Show recommended fix",
+				vscode.CodeActionKind.QuickFix
+			);
+			showFixAction.command = {
+				command: "code-shamer.reviewFixes",
+				title: "Review Fixes",
+				arguments: [document.uri],
+			};
+			showFixAction.diagnostics = [diag];
+			showFixAction.isPreferred = true;
+			actions.push(showFixAction);
 		}
 
 		return actions;
