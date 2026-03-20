@@ -59,7 +59,7 @@ export const javascriptRules: ShamePattern[] = [
 	},
 	{
 		id: "js-nested-ternary",
-		pattern: /\?[^:]*\?/,
+		pattern: /\?(?![.?])[^:]*\?(?![.?])/,
 		severity: 2,
 		category: "style",
 		messageKey: "shame.js.nestedTernary",

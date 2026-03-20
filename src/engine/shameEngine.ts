@@ -17,7 +17,13 @@ export function analyzeFile(
 			r.severity >= settings.severityThreshold
 	);
 
+	// Mask string literals to avoid false positives in strings, preserving newlines
+	const maskedContent = content.replace(/(["'`])(?:(?=(\\?))\2[\s\S])*?\1/g, match => {
+		return match.replace(/[^\r\n]/g, " ");
+	});
+
 	const lines = content.split("\n");
+	const maskedLines = maskedContent.split("\n");
 	const ignoredLines = getIgnoredLines(lines);
 	const isFileIgnored = lines.some(l => /\bcode-shamer-ignore-file\b/.test(l));
 	const matches: ShameMatch[] = [];
@@ -25,6 +31,7 @@ export function analyzeFile(
 
 	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 		const lineText = lines[lineIndex];
+		const maskedLine = maskedLines[lineIndex];
 		const isIgnored = isFileIgnored || ignoredLines.has(lineIndex);
 
 		for (const rule of activeRules) {
@@ -33,15 +40,15 @@ export function analyzeFile(
 			}
 
 			const regex = new RegExp(rule.pattern.source, rule.pattern.flags);
-			const match = regex.exec(lineText);
-			if (match) {
+			const matchRegex = regex.exec(maskedLine);
+			if (matchRegex) {
 				if (isIgnored) {
 					skippedShames++;
 				} else {
 					matches.push({
 						pattern: rule,
 						line: lineIndex,
-						column: match.index,
+						column: matchRegex.index,
 						lineText,
 						filePath,
 					});
@@ -62,7 +69,7 @@ export function analyzeFile(
 				: rule.pattern.flags + "g"
 		);
 		let match: RegExpExecArray | null;
-		while ((match = regex.exec(content)) !== null) {
+		while ((match = regex.exec(maskedContent)) !== null) {
 			const line =
 				content.substring(0, match.index).split("\n").length - 1;
 			if (isFileIgnored || ignoredLines.has(line)) {
