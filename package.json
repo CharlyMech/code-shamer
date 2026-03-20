@@ -74,6 +74,19 @@
         "command": "code-shamer.showFileShames",
         "title": "CodeShamer: Shame Detected!",
         "icon": "$(flame)"
+      },
+      {
+        "command": "code-shamer.applyFixInline",
+        "title": "Aplicar corrección"
+      },
+      {
+        "command": "code-shamer.ignoreInline",
+        "title": "Ignorar shame inline"
+      },
+      {
+        "command": "code-shamer.ignoreFileFromDiff",
+        "title": "Ignorar shame en archivo",
+        "icon": "$(eye-closed)"
       }
     ],
     "viewsContainers": {
@@ -88,14 +101,16 @@
     "views": {
       "codeshamer": [
         {
-          "type": "webview",
-          "id": "codeshamer.panelView",
-          "name": "Summary"
-        },
-        {
           "type": "tree",
           "id": "codeshamer.treeView",
-          "name": "Files"
+          "name": "Files",
+          "icon": "media/codeshamer-activity.svg"
+        },
+        {
+          "type": "webview",
+          "id": "codeshamer.panelView",
+          "name": "Summary",
+          "icon": "media/codeshamer-activity.svg"
         }
       ]
     },
@@ -109,6 +124,11 @@
       ],
       "editor/title": [
         {
+          "command": "code-shamer.ignoreFileFromDiff",
+          "group": "navigation",
+          "when": "resourceScheme == codeshamer-fix"
+        },
+        {
           "command": "code-shamer.scanCurrentFile",
           "group": "navigation",
           "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.fileState != 'shames' && !codeShamer.isScanning"
@@ -121,7 +141,7 @@
         {
           "command": "code-shamer.showFileShames",
           "group": "navigation",
-          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.fileState == 'shames' && !codeShamer.isScanning"
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.fileState == 'shames' && !codeShamer.isScanning && !isInDiffEditor"
         }
       ],
       "view/title": [
