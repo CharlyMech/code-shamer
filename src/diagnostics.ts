@@ -62,12 +62,12 @@ export class ShameDiagnosticsManager {
 	}
 
 	private mapSeverity(severity: number): vscode.DiagnosticSeverity {
-		if (severity <= 2) {
-			return vscode.DiagnosticSeverity.Hint;
+		if (severity >= 4) {
+			return vscode.DiagnosticSeverity.Error;
 		}
 		if (severity === 3) {
 			return vscode.DiagnosticSeverity.Warning;
 		}
-		return vscode.DiagnosticSeverity.Information;
+		return vscode.DiagnosticSeverity.Warning;
 	}
 }

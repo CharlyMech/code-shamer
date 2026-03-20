@@ -122,6 +122,8 @@ body {
 }
 .floating-card {
   width: 100%;
+  min-width: 260px;
+  max-width: 480px;
   height: 120px;
   background: var(--vscode-editorWidget-background);
   border: 1px solid var(--vscode-widget-border);
@@ -139,17 +141,6 @@ body {
   border: 1.5px solid ${level.color};
   object-fit: cover;
   flex-shrink: 0;
-}
-@media (max-width: 320px) {
-  .floating-card {
-    flex-direction: column;
-    height: auto;
-    align-items: center;
-  }
-  .banner-image {
-    width: 100%;
-    height: 120px;
-  }
 }
 .card-content {
   display: flex;
@@ -202,10 +193,18 @@ body {
       <div class="card-content">
         <div class="card-header">
           <div class="level-title">${level.emoji} ${this._esc(levelTitle)}</div>
-          ${result.skippedShames > 0 ? `<div class="skipped-badge" title="Ignored shames">${result.skippedShames} skipped</div>` : ""}
+          ${
+					result.skippedShames > 0
+						? `<div class="skipped-badge" title="Ignored shames">${result.skippedShames} skipped</div>`
+						: ""
+				}
         </div>
         <div class="roast">"${this._esc(roastMessage)}"</div>
-        <div class="stats">${result.totalShames} shame${result.totalShames !== 1 ? "s" : ""} in ${filesWithShames.length} file${filesWithShames.length !== 1 ? "s" : ""}</div>
+        <div class="stats">${result.totalShames} shame${
+			result.totalShames !== 1 ? "s" : ""
+		} in ${filesWithShames.length} file${
+			filesWithShames.length !== 1 ? "s" : ""
+		}</div>
       </div>
     </div>
   </div>
