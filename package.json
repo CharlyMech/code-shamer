@@ -87,6 +87,21 @@
         "command": "code-shamer.ignoreFileFromDiff",
         "title": "Ignorar shame en archivo",
         "icon": "$(eye-closed)"
+      },
+      {
+        "command": "code-shamer.applySuggestionAtCursor",
+        "title": "CodeShamer: Apply Suggested Change at Cursor",
+        "icon": "$(check)"
+      },
+      {
+        "command": "code-shamer.applyAllSuggestionsInFile",
+        "title": "CodeShamer: Apply All Suggested Changes in File",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "code-shamer.ignoreSuggestionAtCursor",
+        "title": "CodeShamer: Ignore Suggested Change at Cursor",
+        "icon": "$(eye-closed)"
       }
     ],
     "viewsContainers": {
@@ -109,7 +124,7 @@
         {
           "type": "webview",
           "id": "codeshamer.panelView",
-          "name": "Summary",
+          "name": "Shame Report",
           "icon": "media/codeshamer-activity.svg"
         }
       ]
@@ -129,19 +144,29 @@
           "when": "resourceScheme == codeshamer-fix"
         },
         {
+          "command": "code-shamer.applySuggestionAtCursor",
+          "group": "navigation@1",
+          "when": "resourceScheme == codeshamer-fix"
+        },
+        {
+          "command": "code-shamer.applyAllSuggestionsInFile",
+          "group": "navigation@2",
+          "when": "resourceScheme == codeshamer-fix"
+        },
+        {
           "command": "code-shamer.scanCurrentFile",
           "group": "navigation",
-          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.fileState != 'shames' && !codeShamer.isScanning"
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css|c|cpp)/ && codeShamer.fileState != 'shames' && !codeShamer.isScanning"
         },
         {
           "command": "code-shamer.scanning",
           "group": "navigation",
-          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.isScanning"
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css|c|cpp)/ && codeShamer.isScanning"
         },
         {
           "command": "code-shamer.showFileShames",
           "group": "navigation",
-          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css)/ && codeShamer.fileState == 'shames' && !codeShamer.isScanning && !isInDiffEditor"
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css|c|cpp)/ && codeShamer.fileState == 'shames' && !codeShamer.isScanning && !isInDiffEditor"
         }
       ],
       "view/title": [
@@ -165,6 +190,26 @@
           "default": true,
           "description": "Show humorous roast messages after scans"
         },
+        "codeShamer.showStartupNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow startup (F5 activation) notifications and status messages"
+        },
+        "codeShamer.showAchievementNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show achievement notifications after scans"
+        },
+        "codeShamer.showScanCompletionStatusMessage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a short completion status message after scans"
+        },
+        "codeShamer.showStatusBarOnlyWhileScanning": {
+          "type": "boolean",
+          "default": false,
+          "description": "Only show CodeShamer status bar item while scanning"
+        },
         "codeShamer.enabledLanguages": {
           "type": "array",
           "default": [
@@ -174,6 +219,8 @@
             "typescriptreact",
             "python",
             "java",
+            "cpp",
+            "c",
             "dart",
             "php",
             "html",
@@ -251,6 +298,17 @@
           "type": "array",
           "default": [],
           "description": "Rule IDs to disable (e.g. ['js-magic-number', 'common-todo'])"
+        },
+        "codeShamer.inlineShameUnderlineColors": {
+          "type": "object",
+          "default": {
+            "1": "#E5C07B",
+            "2": "#E5B567",
+            "3": "#E59F5A",
+            "4": "#E06C75",
+            "5": "#BE5046"
+          },
+          "description": "Per-severity underline colors for inline shame decorations"
         }
       }
     }

@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { analyzeFile } from "../engine/shameEngine";
+import { buildSuggestedFixLines } from "../diff/fixProvider";
 
 export class ShameDiffCodeLensProvider implements vscode.CodeLensProvider {
 	async provideCodeLenses(
@@ -19,14 +20,51 @@ export class ShameDiffCodeLensProvider implements vscode.CodeLensProvider {
 			const originalUri = vscode.Uri.parse(originalUriStr);
 			const originalDoc = await vscode.workspace.openTextDocument(originalUri);
 			
-			// We analyze the ORIGINAL document to find the lines that need fixes
+			const originalContent = originalDoc.getText();
 			const result = analyzeFile(
-				originalDoc.getText(),
+				originalContent,
 				originalDoc.languageId,
 				originalDoc.uri.fsPath
 			);
+			const suggestedFixes = buildSuggestedFixLines(
+				originalContent,
+				originalDoc.languageId,
+				originalDoc.uri.fsPath
+			);
+			const fixByLine = new Map<number, string>();
+			for (const suggestion of suggestedFixes.suggestions) {
+				if (!fixByLine.has(suggestion.line)) {
+					fixByLine.set(suggestion.line, suggestion.fixedText);
+				}
+			}
 
 			const lenses: vscode.CodeLens[] = [];
+			const topRange = new vscode.Range(0, 0, 0, 0);
+			lenses.push(
+				new vscode.CodeLens(topRange, {
+					title: "✅ Apply all fixes",
+					command: "code-shamer.applyAllSuggestionsInFile",
+				})
+			);
+			lenses.push(
+				new vscode.CodeLens(topRange, {
+					title: "✨ Apply this fix (cursor line)",
+					command: "code-shamer.applySuggestionAtCursor",
+				})
+			);
+			lenses.push(
+				new vscode.CodeLens(topRange, {
+					title: "🙈 Not shame this line",
+					command: "code-shamer.ignoreSuggestionAtCursor",
+				})
+			);
+			lenses.push(
+				new vscode.CodeLens(topRange, {
+					title: "🙈 Not shame this file",
+					command: "code-shamer.ignoreFileFromDiff",
+				})
+			);
+
 			const processedLines = new Set<number>();
 
 			for (const match of result.matches) {
@@ -40,10 +78,10 @@ export class ShameDiffCodeLensProvider implements vscode.CodeLensProvider {
 				// Get the suggested fixed text from the codeshamer-fix document
 				// Because fixProvider maps lines 1:1 (using empty strings for removals),
 				// the line numbers perfectly align.
-				const fixedText =
-					match.line < document.lineCount
-						? document.lineAt(match.line).text
-						: "";
+				const fixedText = fixByLine.get(match.line);
+				if (typeof fixedText !== "string") {
+					continue;
+				}
 
 				lenses.push(
 					new vscode.CodeLens(range, {
@@ -57,7 +95,7 @@ export class ShameDiffCodeLensProvider implements vscode.CodeLensProvider {
 					new vscode.CodeLens(range, {
 						title: "🙈 Ignorar shame inline",
 						command: "code-shamer.ignoreInline",
-						arguments: [originalUri, match.line],
+						arguments: [originalUri, match.line, match.pattern.id],
 					})
 				);
 			}
