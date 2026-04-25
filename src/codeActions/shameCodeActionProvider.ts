@@ -153,7 +153,7 @@ export class ShameCodeActionProvider implements vscode.CodeActionProvider {
 			// 1. Ignore line next line
 			const ignoreLineAction = new vscode.CodeAction("CodeShamer: Ignore this line", vscode.CodeActionKind.QuickFix);
 			ignoreLineAction.edit = new vscode.WorkspaceEdit();
-			ignoreLineAction.edit.insert(document.uri, new vscode.Position(diag.range.start.line, 0), `${commentPrefix} code-shamer-ignore-next-line${commentSuffix}${eol}`);
+			ignoreLineAction.edit.insert(document.uri, new vscode.Position(diag.range.start.line, 0), `${commentPrefix} code-shamer-ignore-next-line ${ruleId}${commentSuffix}${eol}`);
 			ignoreLineAction.diagnostics = [diag];
 			actions.push(ignoreLineAction);
 
