@@ -72,7 +72,7 @@ const UNLOCKED_KEY = "codeshamer.achievements";
 export class AchievementTracker {
 	constructor(private context: vscode.ExtensionContext) { }
 
-	checkAndNotify(history: ShameHistory): void {
+	checkAndNotify(history: ShameHistory, notificationsEnabled = true): void {
 		const locale = getLocale();
 		const unlocked = this.context.workspaceState.get<string[]>(
 			UNLOCKED_KEY,
@@ -86,11 +86,13 @@ export class AchievementTracker {
 
 			if (ach.check(history)) {
 				unlocked.push(ach.id);
-				const title =
-					locale.achievements[ach.titleKey] ?? ach.titleKey;
-				vscode.window.showInformationMessage(
-					`${ach.icon} CodeShamer Achievement: ${title}`
-				);
+				if (notificationsEnabled) {
+					const title =
+						locale.achievements[ach.titleKey] ?? ach.titleKey;
+					vscode.window.showInformationMessage(
+						`${ach.icon} CodeShamer Achievement: ${title}`
+					);
+				}
 			}
 		}
 

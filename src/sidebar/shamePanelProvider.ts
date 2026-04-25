@@ -160,15 +160,6 @@ body {
   font-weight: bold;
   color: ${level.color};
 }
-.skipped-badge {
-  background: var(--vscode-badge-background);
-  color: var(--vscode-badge-foreground);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 9px;
-  font-weight: 600;
-  white-space: nowrap;
-}
 .roast {
   font-size: 11px;
   font-style: italic;
@@ -193,11 +184,6 @@ body {
       <div class="card-content">
         <div class="card-header">
           <div class="level-title">${level.emoji} ${this._esc(levelTitle)}</div>
-          ${
-					result.skippedShames > 0
-						? `<div class="skipped-badge" title="Ignored shames">${result.skippedShames} skipped</div>`
-						: ""
-				}
         </div>
         <div class="roast">"${this._esc(roastMessage)}"</div>
         <div class="stats">${result.totalShames} shame${
