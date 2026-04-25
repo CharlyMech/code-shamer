@@ -3,12 +3,17 @@ import * as vscode from "vscode";
 export interface CodeShamerSettings {
 	enabled: boolean;
 	enableRoasts: boolean;
+	showStartupNotifications: boolean;
+	showAchievementNotifications: boolean;
+	showScanCompletionStatusMessage: boolean;
+	showStatusBarOnlyWhileScanning: boolean;
 	enabledLanguages: string[];
 	severityThreshold: 1 | 2 | 3 | 4 | 5;
 	excludePatterns: string[];
 	scanOnSave: boolean;
 	maxFilesToScan: number;
 	disabledRules: string[];
+	inlineShameUnderlineColors: Record<string, string>;
 }
 
 const DEFAULT_LANGUAGES = [
@@ -22,6 +27,8 @@ const DEFAULT_LANGUAGES = [
 	"c",
 	"dart",
 	"php",
+	"html",
+	"css",
 ];
 
 export function getSettings(): CodeShamerSettings {
@@ -30,6 +37,22 @@ export function getSettings(): CodeShamerSettings {
 	return {
 		enabled: config.get<boolean>("enable", true),
 		enableRoasts: config.get<boolean>("enableRoasts", true),
+		showStartupNotifications: config.get<boolean>(
+			"showStartupNotifications",
+			true
+		),
+		showAchievementNotifications: config.get<boolean>(
+			"showAchievementNotifications",
+			true
+		),
+		showScanCompletionStatusMessage: config.get<boolean>(
+			"showScanCompletionStatusMessage",
+			true
+		),
+		showStatusBarOnlyWhileScanning: config.get<boolean>(
+			"showStatusBarOnlyWhileScanning",
+			false
+		),
 		enabledLanguages: config.get<string[]>(
 			"enabledLanguages",
 			DEFAULT_LANGUAGES
@@ -105,5 +128,15 @@ export function getSettings(): CodeShamerSettings {
 		scanOnSave: config.get<boolean>("scanOnSave", true),
 		maxFilesToScan: config.get<number>("maxFilesToScan", 5000),
 		disabledRules: config.get<string[]>("disabledRules", []),
+		inlineShameUnderlineColors: config.get<Record<string, string>>(
+			"inlineShameUnderlineColors",
+			{
+				"1": "#E5C07B",
+				"2": "#E5B567",
+				"3": "#E59F5A",
+				"4": "#E06C75",
+				"5": "#BE5046",
+			}
+		),
 	};
 }
