@@ -125,6 +125,7 @@ export class WorkspaceScanner {
 		const bySeverity: Record<number, number> = {};
 		let skippedShames = 0;
 		let totalShames = 0;
+		let weightedScore = 0;
 
 		for (const file of files) {
 			skippedShames += file.skippedShames;
@@ -134,6 +135,11 @@ export class WorkspaceScanner {
 				byCategory[cat] = (byCategory[cat] || 0) + 1;
 				const sev = match.pattern.severity;
 				bySeverity[sev] = (bySeverity[sev] || 0) + 1;
+				const confidence = Math.max(
+					0,
+					Math.min(1, match.pattern.confidence ?? 0.75)
+				);
+				weightedScore += sev * confidence;
 			}
 		}
 
@@ -141,6 +147,7 @@ export class WorkspaceScanner {
 			files,
 			skippedShames,
 			totalShames,
+			weightedScore,
 			byCategory,
 			bySeverity,
 			timestamp: Date.now(),
@@ -152,6 +159,7 @@ export class WorkspaceScanner {
 			files: [],
 			skippedShames: 0,
 			totalShames: 0,
+			weightedScore: 0,
 			byCategory: {} as Record<ShameCategory, number>,
 			bySeverity: {},
 			timestamp: Date.now(),
