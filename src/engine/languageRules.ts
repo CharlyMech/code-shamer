@@ -7,6 +7,8 @@ import { htmlRules } from "./rules/html";
 import { cssRules } from "./rules/css";
 import { dartRules } from "./rules/dart";
 import { phpRules } from "./rules/php";
+import { cRules } from "./rules/c";
+import { cppRules } from "./rules/cpp";
 import { commonRules } from "./rules/common";
 
 const languageSpecificRules: Record<string, ShamePattern[]> = {
@@ -20,6 +22,8 @@ const languageSpecificRules: Record<string, ShamePattern[]> = {
 	php: phpRules,
 	html: htmlRules,
 	css: cssRules,
+	c: cRules,
+	cpp: cppRules,
 };
 
 export function getRulesForLanguage(languageId: string): ShamePattern[] {
