@@ -13,6 +13,18 @@ import { getLocale } from "./i18n";
 import { getRandomRoastKey } from "./roasts/roastMessages";
 import { analyzeFile } from "./engine/shameEngine";
 
+const REFRESH_ON_CHANGE_DEBOUNCE_MS = 600;
+
+interface ExtensionDisposables {
+	output: vscode.OutputChannel;
+	disposables: vscode.Disposable[];
+}
+
+const lifecycle: ExtensionDisposables = {
+	output: undefined as unknown as vscode.OutputChannel,
+	disposables: [],
+};
+
 export function activate(context: vscode.ExtensionContext) {
 	try {
 		_activate(context);
@@ -28,6 +40,11 @@ function _activate(context: vscode.ExtensionContext) {
 		return;
 	}
 
+	const output = vscode.window.createOutputChannel("CodeShamer");
+	lifecycle.output = output;
+	lifecycle.disposables.push(output);
+	context.subscriptions.push(output);
+
 	const locale = getLocale();
 	const scanner = new WorkspaceScanner();
 	const diagnostics = new ShameDiagnosticsManager();
@@ -35,17 +52,24 @@ function _activate(context: vscode.ExtensionContext) {
 	const treeProvider = new ShameTreeProvider();
 	const history = new ShameHistory(context);
 	const achievements = new AchievementTracker(context);
+
+	const treeView = vscode.window.createTreeView("codeshamer.treeView", {
+		treeDataProvider: treeProvider,
+	});
+	treeView.message = locale.ui.scanningWorkspace;
+	context.subscriptions.push(treeView);
+	treeProvider.attachTreeView(treeView);
+
 	const statusBarItem = vscode.window.createStatusBarItem(
 		vscode.StatusBarAlignment.Left,
 		1000
 	);
 	statusBarItem.name = "CodeShamer Scan";
-	statusBarItem.text = "$(sync~spin) CodeShamer: Scanning workspace...";
-	statusBarItem.tooltip = "CodeShamer scan is running";
+	statusBarItem.text = locale.ui.statusBarScanning;
+	statusBarItem.tooltip = locale.ui.statusBarTooltip;
 	context.subscriptions.push(statusBarItem);
-	let scanContext: "startup" | "manual" | "save" = "manual";
+	let scanContext: "startup" | "manual" | "save" | "edit" = "manual";
 
-	// Register the unified sidebar panel (banner + file list)
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			ShamePanelProvider.viewType,
@@ -54,14 +78,9 @@ function _activate(context: vscode.ExtensionContext) {
 		vscode.workspace.registerTextDocumentContentProvider(
 			CodeShamerFixProvider.scheme,
 			new CodeShamerFixProvider()
-		),
-		vscode.window.registerTreeDataProvider(
-			"codeshamer.treeView",
-			treeProvider
 		)
 	);
 
-	// Wire scan results to diagnostics, panel, history, achievements
 	const handleScanState = (active: boolean) => {
 		vscode.commands.executeCommand("setContext", "codeShamer.isScanning", active);
 		if (active) {
@@ -81,13 +100,52 @@ function _activate(context: vscode.ExtensionContext) {
 	};
 
 	const runWorkspaceScan = async (
-		origin: "startup" | "manual" | "save"
+		origin: "startup" | "manual" | "save" | "edit"
 	): Promise<void> => {
 		scanContext = origin;
 		handleScanState(true);
 		await scanner.scanWorkspace();
 		handleScanState(false);
 		scanContext = "manual";
+	};
+
+	const closeStaleFixTabsForCleanFiles = async (): Promise<void> => {
+		const result = scanner.lastResult;
+		if (!result) {
+			return;
+		}
+		const cleanPaths = new Set(
+			result.files
+				.filter((f) => f.matches.length === 0)
+				.map((f) => f.filePath)
+		);
+		const tabsToClose: vscode.Tab[] = [];
+		for (const group of vscode.window.tabGroups.all) {
+			for (const tab of group.tabs) {
+				if (!(tab.input instanceof vscode.TabInputTextDiff)) {
+					continue;
+				}
+				const modified = tab.input.modified;
+				if (modified.scheme !== CodeShamerFixProvider.scheme) {
+					continue;
+				}
+				try {
+					const targetUri = vscode.Uri.parse(modified.query);
+					if (cleanPaths.has(targetUri.fsPath)) {
+						tabsToClose.push(tab);
+					}
+				} catch {
+					// ignore parse errors
+				}
+			}
+		}
+		for (const tab of tabsToClose) {
+			try {
+				await vscode.window.tabGroups.close(tab);
+			} catch (err) {
+				output.appendLine(`Failed to close stale fix tab: ${err}`);
+			}
+		}
 	};
 
 	scanner.onDidScanComplete((result) => {
@@ -103,12 +161,13 @@ function _activate(context: vscode.ExtensionContext) {
 
 		const allowStartupNoise = settings.showStartupNotifications;
 		const isStartupScan = scanContext === "startup";
-		const allowNotifications = !isStartupScan || allowStartupNoise;
+		const isEditScan = scanContext === "edit";
+		const allowNotifications =
+			!isEditScan && (!isStartupScan || allowStartupNoise);
 		const allowAchievements =
 			settings.showAchievementNotifications && allowNotifications;
 		achievements.checkAndNotify(history, allowAchievements);
 
-		// Show roast message if enabled
 		if (
 			settings.enableRoasts &&
 			result.totalShames > 0 &&
@@ -120,10 +179,10 @@ function _activate(context: vscode.ExtensionContext) {
 				showOptionalCompletionStatus(`$(flame) ${roastMessage}`);
 			}
 		}
+
+		void closeStaleFixTabsForCleanFiles();
 	});
 
-	// Commands
-	
 	async function closeDiffTabAndRescan(uri: vscode.Uri) {
 		const fixUriStr = `${CodeShamerFixProvider.scheme}:${uri.path}?${uri.toString()}`;
 		diagnostics.clearDocumentDiagnostics(vscode.Uri.parse(fixUriStr));
@@ -139,7 +198,7 @@ function _activate(context: vscode.ExtensionContext) {
 		if (existingTab) {
 			await vscode.window.tabGroups.close(existingTab);
 		}
-		
+
 		scanner.invalidateFile(uri.fsPath);
 		await runWorkspaceScan("manual");
 	}
@@ -152,6 +211,18 @@ function _activate(context: vscode.ExtensionContext) {
 			return undefined;
 		}
 		return vscode.Uri.parse(active.document.uri.query);
+	};
+
+	const resolveOriginalUriArg = (
+		arg: vscode.Uri | undefined
+	): vscode.Uri | undefined => {
+		if (arg instanceof vscode.Uri) {
+			if (arg.scheme === CodeShamerFixProvider.scheme) {
+				return vscode.Uri.parse(arg.query);
+			}
+			return arg;
+		}
+		return getOriginalUriFromFixEditor();
 	};
 
 	const applySuggestionAtLine = async (
@@ -198,9 +269,7 @@ function _activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand("code-shamer.clearCache", () => {
 			scanner.clearCache();
 			diagnostics.clear();
-			vscode.window.showInformationMessage(
-				"CodeShamer: Cache cleared. Run scan again."
-			);
+			vscode.window.showInformationMessage(locale.ui.cacheCleared);
 		}),
 
 		vscode.commands.registerCommand(
@@ -218,7 +287,7 @@ function _activate(context: vscode.ExtensionContext) {
 						vscode.ConfigurationTarget.Workspace
 					);
 					vscode.window.showInformationMessage(
-						`CodeShamer: Rule '${ruleId}' has been disabled in the workspace.`
+						locale.ui.ruleDisabled(ruleId)
 					);
 					scanner.clearCache();
 					runWorkspaceScan("manual");
@@ -243,17 +312,19 @@ function _activate(context: vscode.ExtensionContext) {
 				const fixUri = vscode.Uri.parse(
 					`${CodeShamerFixProvider.scheme}:${uri.path}?${uri.toString()}`
 				);
-				const fileName = uri.path.split("/").pop() || "File";
+				const relativePath = vscode.workspace.asRelativePath(uri);
 				const originalDoc = await vscode.workspace.openTextDocument(uri);
-				const suggestedFixes = buildSuggestedFixLines(
+				const analysis = buildSuggestedFixLines(
 					originalDoc.getText(),
 					originalDoc.languageId,
 					originalDoc.uri.fsPath
 				);
-				if (suggestedFixes.suggestions.length === 0) {
+				const hasSafe = analysis.suggestions.length > 0;
+				const hasReview = analysis.reviews.length > 0;
+				if (!hasSafe && !hasReview) {
 					handleScanState(false);
 					vscode.window.showInformationMessage(
-						"CodeShamer: No recommended auto-fixes available for this file yet."
+						locale.ui.noRecommendedFixes
 					);
 					return;
 				}
@@ -275,7 +346,7 @@ function _activate(context: vscode.ExtensionContext) {
 					"vscode.diff",
 					uri,
 					fixUri,
-					`CodeShamer: ${fileName} ↔ Fixed`
+					locale.ui.diffTitle(relativePath)
 				);
 				const scanResult = analyzeFile(
 					originalDoc.getText(),
@@ -283,32 +354,43 @@ function _activate(context: vscode.ExtensionContext) {
 					originalDoc.uri.fsPath
 				);
 				const suggestionByLine = new Map<number, string>();
-				for (const suggestion of suggestedFixes.suggestions) {
+				for (const suggestion of analysis.suggestions) {
 					if (!suggestionByLine.has(suggestion.line)) {
 						suggestionByLine.set(suggestion.line, suggestion.fixedText);
 					}
 				}
+				const reviewLines = new Set<number>();
+				for (const review of analysis.reviews) {
+					reviewLines.add(review.line);
+				}
 				const reviewMatches = scanResult.matches
-					.filter((match) => suggestionByLine.has(match.line))
+					.filter(
+						(match) =>
+							suggestionByLine.has(match.line) ||
+							reviewLines.has(match.line)
+					)
 					.map((match) => ({
 						...match,
 						filePath: uri.fsPath,
 						sourceUri: fixUri.toString(),
-						lineText: suggestionByLine.get(match.line) ?? match.lineText,
+						lineText:
+							suggestionByLine.get(match.line) ?? match.lineText,
 						column: 0,
-						endColumn:
-							Math.max(
-								1,
-								(suggestionByLine.get(match.line) ?? "").length
-							),
+						endColumn: Math.max(
+							1,
+							(suggestionByLine.get(match.line) ?? match.lineText)
+								.length
+						),
 					}));
 				diagnostics.setDocumentDiagnostics(fixUri, reviewMatches);
 
 				handleScanState(false);
-				const result = scanner.lastResult?.files.find(
+				const lastResult = scanner.lastResult?.files.find(
 					(f) => f.filePath === uri.fsPath
 				);
-				const hasShames = result ? result.matches.length > 0 : false;
+				const hasShames = lastResult
+					? lastResult.matches.length > 0
+					: false;
 				vscode.commands.executeCommand(
 					"setContext",
 					"codeShamer.fileState",
@@ -324,177 +406,262 @@ function _activate(context: vscode.ExtensionContext) {
 			}
 		),
 
+		vscode.commands.registerCommand("code-shamer.reviewFixes", (arg?: any) => {
+			let uri: vscode.Uri | undefined;
+			if (arg instanceof vscode.Uri) {
+				uri = arg;
+			} else if (arg && arg.resourceUri instanceof vscode.Uri) {
+				uri = arg.resourceUri;
+			} else if (arg && arg.file && typeof arg.file.filePath === "string") {
+				uri = vscode.Uri.file(arg.file.filePath);
+			}
+			vscode.commands.executeCommand("code-shamer.scanCurrentFile", uri);
+		}),
+
 		vscode.commands.registerCommand(
-			"code-shamer.reviewFixes",
-			(arg?: any) => {
-				let uri: vscode.Uri | undefined;
-				if (arg instanceof vscode.Uri) {
-					uri = arg;
-				} else if (arg && arg.resourceUri instanceof vscode.Uri) {
-					uri = arg.resourceUri;
-				} else if (arg && arg.file && typeof arg.file.filePath === "string") {
-					uri = vscode.Uri.file(arg.file.filePath);
+			"code-shamer.applyFixInline",
+			async (uri: vscode.Uri, lineIndex: number, fixedText: string) => {
+				if (!(uri instanceof vscode.Uri)) {
+					vscode.window.showInformationMessage(
+						locale.ui.openCodeShamerDiff
+					);
+					return;
 				}
-				vscode.commands.executeCommand("code-shamer.scanCurrentFile", uri);
+				const edit = new vscode.WorkspaceEdit();
+				const doc = await vscode.workspace.openTextDocument(uri);
+				const lineLength = doc.lineAt(lineIndex).text.length;
+				edit.replace(
+					uri,
+					new vscode.Range(lineIndex, 0, lineIndex, lineLength),
+					fixedText
+				);
+
+				if (await vscode.workspace.applyEdit(edit)) {
+					await doc.save();
+					await closeDiffTabAndRescan(uri);
+				}
 			}
 		),
 
-		vscode.commands.registerCommand("code-shamer.applyFixInline", async (uri: vscode.Uri, lineIndex: number, fixedText: string) => {
-			const edit = new vscode.WorkspaceEdit();
-			const doc = await vscode.workspace.openTextDocument(uri);
-			const lineLength = doc.lineAt(lineIndex).text.length;
-			edit.replace(uri, new vscode.Range(lineIndex, 0, lineIndex, lineLength), fixedText);
-			
-			if (await vscode.workspace.applyEdit(edit)) {
-				await doc.save();
-				await closeDiffTabAndRescan(uri);
-			}
-		}),
-
-		vscode.commands.registerCommand("code-shamer.applySuggestionAtCursor", async () => {
-			const activeEditor = vscode.window.activeTextEditor;
-			const originalUri = getOriginalUriFromFixEditor(activeEditor);
-			if (!activeEditor || !originalUri) {
-				vscode.window.showInformationMessage(
-					"CodeShamer: Open a CodeShamer fixes diff to apply suggestions."
-				);
-				return;
-			}
-			const line = activeEditor.selection.active.line;
-			const result = await applySuggestionAtLine(originalUri, line);
-			if (!result.applied) {
-				vscode.window.showInformationMessage(
-					"CodeShamer: No suggested change for the current line."
-				);
-				return;
-			}
-			await closeDiffTabAndRescan(originalUri);
-			vscode.commands.executeCommand("code-shamer.scanCurrentFile", originalUri);
-		}),
-
-		vscode.commands.registerCommand("code-shamer.applyAllSuggestionsInFile", async () => {
-			const originalUri = getOriginalUriFromFixEditor();
-			if (!originalUri) {
-				vscode.window.showInformationMessage(
-					"CodeShamer: Open a CodeShamer fixes diff to apply all suggestions."
-				);
-				return;
-			}
-			const doc = await vscode.workspace.openTextDocument(originalUri);
-			const suggested = buildSuggestedFixLines(
-				doc.getText(),
-				doc.languageId,
-				doc.uri.fsPath
-			);
-			if (suggested.suggestions.length === 0) {
-				vscode.window.showInformationMessage(
-					"CodeShamer: No suggested changes to apply."
-				);
-				return;
-			}
-
-			const sorted = [...suggested.suggestions].sort((a, b) => b.line - a.line);
-			const edit = new vscode.WorkspaceEdit();
-			for (const item of sorted) {
-				const lineLength =
-					item.line < doc.lineCount ? doc.lineAt(item.line).text.length : 0;
-				edit.replace(
-					originalUri,
-					new vscode.Range(item.line, 0, item.line, lineLength),
-					item.fixedText
-				);
-			}
-			if (await vscode.workspace.applyEdit(edit)) {
-				await doc.save();
+		vscode.commands.registerCommand(
+			"code-shamer.applySuggestionAtCursor",
+			async (originalUriArg?: vscode.Uri) => {
+				const activeEditor = vscode.window.activeTextEditor;
+				const originalUri = originalUriArg instanceof vscode.Uri
+					? originalUriArg
+					: getOriginalUriFromFixEditor(activeEditor);
+				if (!activeEditor || !originalUri) {
+					vscode.window.showInformationMessage(
+						locale.ui.openCodeShamerDiff
+					);
+					return;
+				}
+				const fixUri = activeEditor.document.uri;
+				if (
+					fixUri.scheme === CodeShamerFixProvider.scheme &&
+					fixUri.query !== originalUri.toString()
+				) {
+					vscode.window.showInformationMessage(
+						locale.ui.openCodeShamerDiff
+					);
+					return;
+				}
+				const line = activeEditor.selection.active.line;
+				const result = await applySuggestionAtLine(originalUri, line);
+				if (!result.applied) {
+					vscode.window.showInformationMessage(
+						locale.ui.noSuggestedChange
+					);
+					return;
+				}
 				await closeDiffTabAndRescan(originalUri);
-				vscode.commands.executeCommand("code-shamer.scanCurrentFile", originalUri);
-			}
-		}),
-
-		vscode.commands.registerCommand("code-shamer.ignoreSuggestionAtCursor", async () => {
-			const activeEditor = vscode.window.activeTextEditor;
-			const originalUri = getOriginalUriFromFixEditor(activeEditor);
-			if (!activeEditor || !originalUri) {
-				vscode.window.showInformationMessage(
-					"CodeShamer: Open a CodeShamer fixes diff to ignore a suggestion."
+				vscode.commands.executeCommand(
+					"code-shamer.scanCurrentFile",
+					originalUri
 				);
-				return;
 			}
-			const line = activeEditor.selection.active.line;
-			const doc = await vscode.workspace.openTextDocument(originalUri);
-			const suggested = buildSuggestedFixLines(
-				doc.getText(),
-				doc.languageId,
-				doc.uri.fsPath
-			);
-			const suggestion = suggested.suggestions.find((item) => item.line === line);
-			if (!suggestion) {
-				vscode.window.showInformationMessage(
-					"CodeShamer: No suggested change on the current line."
+		),
+
+		vscode.commands.registerCommand(
+			"code-shamer.applyAllSuggestionsInFile",
+			async (originalUriArg?: vscode.Uri) => {
+				const originalUri =
+					originalUriArg instanceof vscode.Uri
+						? originalUriArg
+						: getOriginalUriFromFixEditor();
+				if (!originalUri) {
+					vscode.window.showInformationMessage(
+						locale.ui.openCodeShamerDiff
+					);
+					return;
+				}
+				const activeEditor = vscode.window.activeTextEditor;
+				if (
+					activeEditor &&
+					activeEditor.document.uri.scheme ===
+						CodeShamerFixProvider.scheme &&
+					activeEditor.document.uri.query !== originalUri.toString()
+				) {
+					vscode.window.showInformationMessage(
+						locale.ui.openCodeShamerDiff
+					);
+					return;
+				}
+				const doc = await vscode.workspace.openTextDocument(originalUri);
+				const suggested = buildSuggestedFixLines(
+					doc.getText(),
+					doc.languageId,
+					doc.uri.fsPath
 				);
-				return;
-			}
-			await vscode.commands.executeCommand(
-				"code-shamer.ignoreInline",
-				originalUri,
-				line,
-				suggestion.match.pattern.id
-			);
-		}),
+				if (suggested.suggestions.length === 0) {
+					vscode.window.showInformationMessage(
+						locale.ui.noSuggestedChangesToApply
+					);
+					return;
+				}
 
-		vscode.commands.registerCommand("code-shamer.ignoreInline", async (uri: vscode.Uri, lineIndex: number, ruleId?: string) => {
-			const edit = new vscode.WorkspaceEdit();
-			const doc = await vscode.workspace.openTextDocument(uri);
-			
-			const commentPrefix = doc.languageId === "html" ? "<!--" : doc.languageId === "css" ? "/*" : "//";
-			const commentSuffix = doc.languageId === "html" ? " -->" : doc.languageId === "css" ? " */" : "";
-			const eol = doc.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
-			
-			const directive = ruleId
-				? `code-shamer-ignore-next-line ${ruleId}`
-				: "code-shamer-ignore-next-line";
-			edit.insert(
-				uri,
-				new vscode.Position(lineIndex, 0),
-				`${commentPrefix} ${directive}${commentSuffix}${eol}`
-			);
-			
-			if (await vscode.workspace.applyEdit(edit)) {
-				await doc.save();
-				await closeDiffTabAndRescan(uri);
+				const sorted = [...suggested.suggestions].sort(
+					(a, b) => b.line - a.line
+				);
+				const edit = new vscode.WorkspaceEdit();
+				for (const item of sorted) {
+					const lineLength =
+						item.line < doc.lineCount
+							? doc.lineAt(item.line).text.length
+							: 0;
+					edit.replace(
+						originalUri,
+						new vscode.Range(item.line, 0, item.line, lineLength),
+						item.fixedText
+					);
+				}
+				if (await vscode.workspace.applyEdit(edit)) {
+					await doc.save();
+					await closeDiffTabAndRescan(originalUri);
+					vscode.commands.executeCommand(
+						"code-shamer.scanCurrentFile",
+						originalUri
+					);
+				}
 			}
-		}),
+		),
 
-		vscode.commands.registerCommand("code-shamer.ignoreFileFromDiff", async (arg?: any) => {
-			let activeDiffUri: vscode.Uri | undefined;
-			
-			const activeEditor = vscode.window.activeTextEditor;
-			if (activeEditor && activeEditor.document.uri.scheme === "codeshamer-fix") {
-				activeDiffUri = vscode.Uri.parse(activeEditor.document.uri.query);
-			} else if (arg && arg.query) {
-				activeDiffUri = vscode.Uri.parse(arg.query);
+		vscode.commands.registerCommand(
+			"code-shamer.ignoreSuggestionAtCursor",
+			async (originalUriArg?: vscode.Uri) => {
+				const activeEditor = vscode.window.activeTextEditor;
+				const originalUri = originalUriArg instanceof vscode.Uri
+					? originalUriArg
+					: getOriginalUriFromFixEditor(activeEditor);
+				if (!activeEditor || !originalUri) {
+					vscode.window.showInformationMessage(
+						locale.ui.openCodeShamerDiff
+					);
+					return;
+				}
+				const line = activeEditor.selection.active.line;
+				const doc = await vscode.workspace.openTextDocument(originalUri);
+				const suggested = buildSuggestedFixLines(
+					doc.getText(),
+					doc.languageId,
+					doc.uri.fsPath
+				);
+				const candidate =
+					suggested.suggestions.find((item) => item.line === line) ??
+					suggested.reviews.find((item) => item.line === line);
+				if (!candidate) {
+					vscode.window.showInformationMessage(
+						locale.ui.noSuggestedChange
+					);
+					return;
+				}
+				await vscode.commands.executeCommand(
+					"code-shamer.ignoreInline",
+					originalUri,
+					line,
+					candidate.match.pattern.id
+				);
 			}
-			
-			if (!activeDiffUri) {
-				return;
-			}
-			
-			const edit = new vscode.WorkspaceEdit();
-			const doc = await vscode.workspace.openTextDocument(activeDiffUri);
-			
-			const commentPrefix = doc.languageId === "html" ? "<!--" : doc.languageId === "css" ? "/*" : "//";
-			const commentSuffix = doc.languageId === "html" ? " -->" : doc.languageId === "css" ? " */" : "";
-			const eol = doc.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
-			
-			edit.insert(activeDiffUri, new vscode.Position(0, 0), `${commentPrefix} code-shamer-ignore-file${commentSuffix}${eol}`);
-			
-			if (await vscode.workspace.applyEdit(edit)) {
-				await doc.save();
-				await closeDiffTabAndRescan(activeDiffUri);
-			}
-		}),
+		),
 
-		vscode.commands.registerCommand("code-shamer.scanning", () => {})
+		vscode.commands.registerCommand(
+			"code-shamer.ignoreInline",
+			async (uri: vscode.Uri, lineIndex: number, ruleId?: string) => {
+				if (!(uri instanceof vscode.Uri)) {
+					return;
+				}
+				const edit = new vscode.WorkspaceEdit();
+				const doc = await vscode.workspace.openTextDocument(uri);
+
+				const commentPrefix =
+					doc.languageId === "html"
+						? "<!--"
+						: doc.languageId === "css"
+							? "/*"
+							: "//";
+				const commentSuffix =
+					doc.languageId === "html"
+						? " -->"
+						: doc.languageId === "css"
+							? " */"
+							: "";
+				const eol = doc.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+
+				const directive = ruleId
+					? `code-shamer-ignore-next-line ${ruleId}`
+					: "code-shamer-ignore-next-line";
+				edit.insert(
+					uri,
+					new vscode.Position(lineIndex, 0),
+					`${commentPrefix} ${directive}${commentSuffix}${eol}`
+				);
+
+				if (await vscode.workspace.applyEdit(edit)) {
+					await doc.save();
+					await closeDiffTabAndRescan(uri);
+				}
+			}
+		),
+
+		vscode.commands.registerCommand(
+			"code-shamer.ignoreFileFromDiff",
+			async (arg?: any) => {
+				const resolved = resolveOriginalUriArg(arg);
+				if (!resolved) {
+					return;
+				}
+
+				const edit = new vscode.WorkspaceEdit();
+				const doc = await vscode.workspace.openTextDocument(resolved);
+
+				const commentPrefix =
+					doc.languageId === "html"
+						? "<!--"
+						: doc.languageId === "css"
+							? "/*"
+							: "//";
+				const commentSuffix =
+					doc.languageId === "html"
+						? " -->"
+						: doc.languageId === "css"
+							? " */"
+							: "";
+				const eol = doc.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+
+				edit.insert(
+					resolved,
+					new vscode.Position(0, 0),
+					`${commentPrefix} code-shamer-ignore-file${commentSuffix}${eol}`
+				);
+
+				if (await vscode.workspace.applyEdit(edit)) {
+					await doc.save();
+					await closeDiffTabAndRescan(resolved);
+				}
+			}
+		),
+
+		vscode.commands.registerCommand("code-shamer.scanning", () => { })
 	);
 
 	context.subscriptions.push(
@@ -513,7 +680,6 @@ function _activate(context: vscode.ExtensionContext) {
 		})
 	);
 
-	// Register code action provider for all enabled languages
 	for (const lang of settings.enabledLanguages) {
 		context.subscriptions.push(
 			vscode.languages.registerCodeActionsProvider(
@@ -527,7 +693,6 @@ function _activate(context: vscode.ExtensionContext) {
 		);
 	}
 
-	// Register Diff Codelens Provider
 	context.subscriptions.push(
 		vscode.languages.registerCodeLensProvider(
 			{ scheme: "codeshamer-fix" },
@@ -535,7 +700,6 @@ function _activate(context: vscode.ExtensionContext) {
 		)
 	);
 
-	// File watcher: re-scan on save
 	if (settings.scanOnSave) {
 		context.subscriptions.push(
 			vscode.workspace.onDidSaveTextDocument((doc) => {
@@ -547,12 +711,82 @@ function _activate(context: vscode.ExtensionContext) {
 		);
 	}
 
-	// Disposables
+	const editTimers = new Map<string, NodeJS.Timeout>();
+	if (settings.scanOnEdit) {
+		context.subscriptions.push(
+			vscode.workspace.onDidChangeTextDocument((event) => {
+				const doc = event.document;
+				if (doc.uri.scheme !== "file") {
+					return;
+				}
+				if (!settings.enabledLanguages.includes(doc.languageId)) {
+					return;
+				}
+				const key = doc.uri.toString();
+				const existing = editTimers.get(key);
+				if (existing) {
+					clearTimeout(existing);
+				}
+				const timer = setTimeout(() => {
+					editTimers.delete(key);
+					scanner.invalidateFile(doc.uri.fsPath);
+					runWorkspaceScan("edit").catch((err) => {
+						output.appendLine(
+							`Edit refresh scan failed: ${err}`
+						);
+					});
+				}, REFRESH_ON_CHANGE_DEBOUNCE_MS);
+				editTimers.set(key, timer);
+			}),
+			{
+				dispose: () => {
+					for (const timer of editTimers.values()) {
+						clearTimeout(timer);
+					}
+					editTimers.clear();
+				},
+			}
+		);
+	}
+
 	context.subscriptions.push(diagnostics, scanner);
 
-	// Auto-scan on activation
 	panelProvider.setLoading();
 	runWorkspaceScan("startup");
 }
 
-export function deactivate() {}
+export function deactivate() {
+	try {
+		for (const disposable of lifecycle.disposables) {
+			try {
+				disposable.dispose();
+			} catch (err) {
+				if (isCancellationError(err)) {
+					continue;
+				}
+				lifecycle.output?.appendLine(
+					`CodeShamer deactivate: dispose error ${String(err)}`
+				);
+			}
+		}
+		lifecycle.disposables.length = 0;
+	} catch (err) {
+		if (!isCancellationError(err)) {
+			console.error("CodeShamer: deactivate failed", err);
+		}
+	}
+}
+
+function isCancellationError(err: unknown): boolean {
+	if (!err) {
+		return false;
+	}
+	const name = (err as { name?: string }).name;
+	const message = (err as { message?: string }).message;
+	return (
+		name === "Canceled" ||
+		name === "CancellationError" ||
+		message === "Canceled" ||
+		message === "Operation cancelled"
+	);
+}

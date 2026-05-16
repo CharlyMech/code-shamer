@@ -11,6 +11,7 @@ export interface CodeShamerSettings {
 	severityThreshold: 1 | 2 | 3 | 4 | 5;
 	excludePatterns: string[];
 	scanOnSave: boolean;
+	scanOnEdit: boolean;
 	maxFilesToScan: number;
 	disabledRules: string[];
 	inlineShameUnderlineColors: Record<string, string>;
@@ -126,6 +127,7 @@ export function getSettings(): CodeShamerSettings {
 			"**/.tox/**",
 		]),
 		scanOnSave: config.get<boolean>("scanOnSave", true),
+		scanOnEdit: config.get<boolean>("scanOnEdit", true),
 		maxFilesToScan: config.get<number>("maxFilesToScan", 5000),
 		disabledRules: config.get<string[]>("disabledRules", []),
 		inlineShameUnderlineColors: config.get<Record<string, string>>(
