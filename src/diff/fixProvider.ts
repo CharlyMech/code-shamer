@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
 import { analyzeFile } from "../engine/shameEngine";
 import { ShameMatch } from "../engine/types";
+import {
+	getFixedLine,
+	getFixEntry,
+} from "../engine/fixes/registry";
 
 export interface SuggestedFixLine {
 	line: number;
@@ -8,14 +12,29 @@ export interface SuggestedFixLine {
 	match: ShameMatch;
 }
 
+export interface ReviewSuggestion {
+	line: number;
+	hintKey: string;
+	titleKey: string;
+	match: ShameMatch;
+}
+
+export interface FixAnalysis {
+	content: string;
+	suggestions: SuggestedFixLine[];
+	reviews: ReviewSuggestion[];
+}
+
 export function buildSuggestedFixLines(
 	originalContent: string,
 	languageId: string,
 	filePath: string
-): { content: string; suggestions: SuggestedFixLine[] } {
+): FixAnalysis {
 	const result = analyzeFile(originalContent, languageId, filePath);
-	let lines = originalContent.split(/\r?\n/);
+	const lines = originalContent.split(/\r?\n/);
 	const suggestions: SuggestedFixLine[] = [];
+	const reviews: ReviewSuggestion[] = [];
+	const reviewSeen = new Set<string>();
 
 	const sortedMatches = [...result.matches].sort((a, b) => {
 		if (a.line !== b.line) {
@@ -25,29 +44,37 @@ export function buildSuggestedFixLines(
 	});
 
 	for (const match of sortedMatches) {
-		const id = match.pattern.id;
-		const lineText = lines[match.line];
-		let fixedText = lineText;
-
-		if (id === "js-var-usage") {
-			fixedText = lineText.replace(/\bvar\b/, "let");
-		} else if (id === "js-loose-equality") {
-			fixedText = lineText.replace(/([^!=])==([^=])/g, "$1===$2");
-		} else if (id === "js-loose-inequality") {
-			fixedText = lineText.replace(/!=([^=])/g, "!==$1");
-		} else if (
-			id === "js-debugger" ||
-			id === "js-console-log" ||
-			id === "js-alert"
-		) {
-			fixedText = "";
+		const ruleId = match.pattern.id;
+		const entry = getFixEntry(ruleId);
+		if (!entry) {
+			continue;
 		}
 
-		if (fixedText !== lineText) {
+		if (entry.safety === "safe" && entry.transform) {
+			const lineText = lines[match.line];
+			if (typeof lineText !== "string") {
+				continue;
+			}
+			const fixedText = getFixedLine(ruleId, lineText, match);
+			if (fixedText === null) {
+				continue;
+			}
 			lines[match.line] = fixedText;
 			suggestions.push({
 				line: match.line,
 				fixedText,
+				match,
+			});
+		} else if (entry.safety === "review" && entry.hintKey) {
+			const reviewKey = `${ruleId}:${match.line}`;
+			if (reviewSeen.has(reviewKey)) {
+				continue;
+			}
+			reviewSeen.add(reviewKey);
+			reviews.push({
+				line: match.line,
+				hintKey: entry.hintKey,
+				titleKey: entry.titleKey,
 				match,
 			});
 		}
@@ -56,21 +83,22 @@ export function buildSuggestedFixLines(
 	return {
 		content: lines.join("\n"),
 		suggestions,
+		reviews,
 	};
 }
 
 export class CodeShamerFixProvider implements vscode.TextDocumentContentProvider {
-    static scheme = "codeshamer-fix";
+	static scheme = "codeshamer-fix";
 
-    async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-        const originalUri = vscode.Uri.parse(uri.query);
-        const doc = await vscode.workspace.openTextDocument(originalUri);
+	async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
+		const originalUri = vscode.Uri.parse(uri.query);
+		const doc = await vscode.workspace.openTextDocument(originalUri);
 		const suggested = buildSuggestedFixLines(
 			doc.getText(),
 			doc.languageId,
 			doc.uri.fsPath
 		);
-        const eol = doc.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
-        return suggested.content.split("\n").join(eol);
-    }
+		const eol = doc.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+		return suggested.content.split("\n").join(eol);
+	}
 }
