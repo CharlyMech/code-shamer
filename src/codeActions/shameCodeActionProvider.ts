@@ -1,127 +1,57 @@
 import * as vscode from "vscode";
+import {
+	getFixEntry,
+	hasAnyRecommendation,
+} from "../engine/fixes/registry";
+import { getLocale } from "../i18n";
 
-type FixFactory = (
-	doc: vscode.TextDocument,
-	range: vscode.Range
-) => vscode.CodeAction | undefined;
+interface FixContext {
+	doc: vscode.TextDocument;
+	range: vscode.Range;
+	ruleId: string;
+}
 
-const FIXABLE_RULES: Record<string, FixFactory> = {
-	"js-var-usage": (doc, range) => {
-		const line = doc.lineAt(range.start.line);
-		const varMatch = /\bvar\b/.exec(line.text);
-		if (!varMatch) {
-			return undefined;
-		}
+function buildSafeFixAction(
+	ctx: FixContext,
+	titleKey: string
+): vscode.CodeAction | undefined {
+	const locale = getLocale();
+	const title = `CodeShamer: ${locale.t(titleKey)}`;
+	const entry = getFixEntry(ctx.ruleId);
+	if (!entry || !entry.transform) {
+		return undefined;
+	}
 
-		const fix = new vscode.CodeAction(
-			"CodeShamer: Replace 'var' with 'let'",
-			vscode.CodeActionKind.QuickFix
+	const line = ctx.doc.lineAt(ctx.range.start.line);
+	const fixed = entry.transform(line.text, {
+		pattern: { id: ctx.ruleId } as never,
+		line: ctx.range.start.line,
+		column: ctx.range.start.character,
+		lineText: line.text,
+		filePath: ctx.doc.uri.fsPath,
+	});
+	if (fixed === null || fixed === line.text) {
+		return undefined;
+	}
+
+	const action = new vscode.CodeAction(title, vscode.CodeActionKind.QuickFix);
+	action.edit = new vscode.WorkspaceEdit();
+
+	if (entry.kind === "removeLine") {
+		action.edit.delete(ctx.doc.uri, line.rangeIncludingLineBreak);
+	} else {
+		action.edit.replace(
+			ctx.doc.uri,
+			new vscode.Range(line.range.start, line.range.end),
+			fixed
 		);
-		fix.edit = new vscode.WorkspaceEdit();
-		fix.edit.replace(
-			doc.uri,
-			new vscode.Range(
-				range.start.line,
-				varMatch.index,
-				range.start.line,
-				varMatch.index + 3
-			),
-			"let"
-		);
-		fix.isPreferred = true;
-		return fix;
-	},
-
-	"js-loose-equality": (doc, range) => {
-		const line = doc.lineAt(range.start.line);
-		const idx = line.text.search(/[^!=]==[^=]/);
-		if (idx < 0) {
-			return undefined;
-		}
-
-		const fix = new vscode.CodeAction(
-			"CodeShamer: Replace '==' with '==='",
-			vscode.CodeActionKind.QuickFix
-		);
-		fix.edit = new vscode.WorkspaceEdit();
-		fix.edit.replace(
-			doc.uri,
-			new vscode.Range(
-				range.start.line,
-				idx + 1,
-				range.start.line,
-				idx + 3
-			),
-			"==="
-		);
-		fix.isPreferred = true;
-		return fix;
-	},
-
-	"js-loose-inequality": (doc, range) => {
-		const line = doc.lineAt(range.start.line);
-		const idx = line.text.search(/!=[^=]/);
-		if (idx < 0) {
-			return undefined;
-		}
-
-		const fix = new vscode.CodeAction(
-			"CodeShamer: Replace '!=' with '!=='",
-			vscode.CodeActionKind.QuickFix
-		);
-		fix.edit = new vscode.WorkspaceEdit();
-		fix.edit.replace(
-			doc.uri,
-			new vscode.Range(
-				range.start.line,
-				idx,
-				range.start.line,
-				idx + 2
-			),
-			"!=="
-		);
-		return fix;
-	},
-
-	"js-debugger": (doc, range) => {
-		const fix = new vscode.CodeAction(
-			"CodeShamer: Remove 'debugger' statement",
-			vscode.CodeActionKind.QuickFix
-		);
-		fix.edit = new vscode.WorkspaceEdit();
-		const line = doc.lineAt(range.start.line);
-		fix.edit.delete(doc.uri, line.rangeIncludingLineBreak);
-		fix.isPreferred = true;
-		return fix;
-	},
-
-	"js-console-log": (doc, range) => {
-		const fix = new vscode.CodeAction(
-			"CodeShamer: Remove console statement",
-			vscode.CodeActionKind.QuickFix
-		);
-		fix.edit = new vscode.WorkspaceEdit();
-		const line = doc.lineAt(range.start.line);
-		fix.edit.delete(doc.uri, line.rangeIncludingLineBreak);
-		return fix;
-	},
-
-	"js-alert": (doc, range) => {
-		const fix = new vscode.CodeAction(
-			"CodeShamer: Remove 'alert()' call",
-			vscode.CodeActionKind.QuickFix
-		);
-		fix.edit = new vscode.WorkspaceEdit();
-		const line = doc.lineAt(range.start.line);
-		fix.edit.delete(doc.uri, line.rangeIncludingLineBreak);
-		return fix;
-	},
-};
+	}
+	action.isPreferred = true;
+	return action;
+}
 
 export class ShameCodeActionProvider implements vscode.CodeActionProvider {
-	static readonly providedCodeActionKinds = [
-		vscode.CodeActionKind.QuickFix,
-	];
+	static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
 	provideCodeActions(
 		document: vscode.TextDocument,
@@ -129,6 +59,7 @@ export class ShameCodeActionProvider implements vscode.CodeActionProvider {
 		context: vscode.CodeActionContext
 	): vscode.CodeAction[] {
 		const actions: vscode.CodeAction[] = [];
+		const locale = getLocale();
 
 		for (const diag of context.diagnostics) {
 			if (diag.source !== "CodeShamer") {
@@ -136,57 +67,87 @@ export class ShameCodeActionProvider implements vscode.CodeActionProvider {
 			}
 
 			const ruleId = String(diag.code);
-			const factory = FIXABLE_RULES[ruleId];
-			if (factory) {
-				const action = factory(document, diag.range);
-				if (action) {
-					action.diagnostics = [diag];
-					actions.push(action);
+			const entry = getFixEntry(ruleId);
+
+			if (entry && entry.safety === "safe") {
+				const safe = buildSafeFixAction(
+					{ doc: document, range: diag.range, ruleId },
+					entry.titleKey
+				);
+				if (safe) {
+					safe.diagnostics = [diag];
+					actions.push(safe);
 				}
 			}
 
-			// Add generic ignore actions
-			const commentPrefix = document.languageId === "html" ? "<!--" : document.languageId === "css" ? "/*" : "//";
-			const commentSuffix = document.languageId === "html" ? " -->" : document.languageId === "css" ? " */" : "";
+			const commentPrefix =
+				document.languageId === "html"
+					? "<!--"
+					: document.languageId === "css"
+						? "/*"
+						: "//";
+			const commentSuffix =
+				document.languageId === "html"
+					? " -->"
+					: document.languageId === "css"
+						? " */"
+						: "";
 			const eol = document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
 
-			// 1. Ignore line next line
-			const ignoreLineAction = new vscode.CodeAction("CodeShamer: Ignore this line", vscode.CodeActionKind.QuickFix);
+			const ignoreLineAction = new vscode.CodeAction(
+				locale.ui.codeActionIgnoreLine,
+				vscode.CodeActionKind.QuickFix
+			);
 			ignoreLineAction.edit = new vscode.WorkspaceEdit();
-			ignoreLineAction.edit.insert(document.uri, new vscode.Position(diag.range.start.line, 0), `${commentPrefix} code-shamer-ignore-next-line ${ruleId}${commentSuffix}${eol}`);
+			ignoreLineAction.edit.insert(
+				document.uri,
+				new vscode.Position(diag.range.start.line, 0),
+				`${commentPrefix} code-shamer-ignore-next-line ${ruleId}${commentSuffix}${eol}`
+			);
 			ignoreLineAction.diagnostics = [diag];
 			actions.push(ignoreLineAction);
 
-			// 2. Ignore file
-			const ignoreFileAction = new vscode.CodeAction("CodeShamer: Ignore this entire file", vscode.CodeActionKind.QuickFix);
+			const ignoreFileAction = new vscode.CodeAction(
+				locale.ui.codeActionIgnoreFile,
+				vscode.CodeActionKind.QuickFix
+			);
 			ignoreFileAction.edit = new vscode.WorkspaceEdit();
-			ignoreFileAction.edit.insert(document.uri, new vscode.Position(0, 0), `${commentPrefix} code-shamer-ignore-file${commentSuffix}${eol}`);
+			ignoreFileAction.edit.insert(
+				document.uri,
+				new vscode.Position(0, 0),
+				`${commentPrefix} code-shamer-ignore-file${commentSuffix}${eol}`
+			);
 			ignoreFileAction.diagnostics = [diag];
 			actions.push(ignoreFileAction);
 
-			// 3. Disable workspace
-			const disableWorkspaceAction = new vscode.CodeAction(`CodeShamer: Disable rule '${ruleId}' for the whole workspace`, vscode.CodeActionKind.QuickFix);
+			const disableWorkspaceAction = new vscode.CodeAction(
+				locale.ui.codeActionDisableWorkspace(ruleId),
+				vscode.CodeActionKind.QuickFix
+			);
 			disableWorkspaceAction.command = {
 				command: "code-shamer.disableRuleWorkspace",
-				title: `Disable ${ruleId}`,
-				arguments: [ruleId]
+				title: locale.ui.codeActionDisableWorkspace(ruleId),
+				arguments: [ruleId],
 			};
 			disableWorkspaceAction.diagnostics = [diag];
 			actions.push(disableWorkspaceAction);
 
-			// 4. Show recommended fix in Split View
-			const showFixAction = new vscode.CodeAction(
-				"✨ CodeShamer: Show recommended fix",
-				vscode.CodeActionKind.QuickFix
-			);
-			showFixAction.command = {
-				command: "code-shamer.reviewFixes",
-				title: "Review Fixes",
-				arguments: [document.uri],
-			};
-			showFixAction.diagnostics = [diag];
-			showFixAction.isPreferred = true;
-			actions.push(showFixAction);
+			if (hasAnyRecommendation(ruleId)) {
+				const showFixAction = new vscode.CodeAction(
+					locale.ui.codeActionShowRecommendedFix,
+					vscode.CodeActionKind.QuickFix
+				);
+				showFixAction.command = {
+					command: "code-shamer.reviewFixes",
+					title: locale.ui.codeActionShowRecommendedFix,
+					arguments: [document.uri],
+				};
+				showFixAction.diagnostics = [diag];
+				if (!entry || entry.safety !== "safe") {
+					showFixAction.isPreferred = true;
+				}
+				actions.push(showFixAction);
+			}
 		}
 
 		return actions;

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { analyzeFile } from "../engine/shameEngine";
 import { buildSuggestedFixLines } from "../diff/fixProvider";
+import { getLocale } from "../i18n";
 
 export class ShameDiffCodeLensProvider implements vscode.CodeLensProvider {
 	async provideCodeLenses(
@@ -19,83 +19,118 @@ export class ShameDiffCodeLensProvider implements vscode.CodeLensProvider {
 		try {
 			const originalUri = vscode.Uri.parse(originalUriStr);
 			const originalDoc = await vscode.workspace.openTextDocument(originalUri);
-			
 			const originalContent = originalDoc.getText();
-			const result = analyzeFile(
-				originalContent,
-				originalDoc.languageId,
-				originalDoc.uri.fsPath
-			);
-			const suggestedFixes = buildSuggestedFixLines(
+			const analysis = buildSuggestedFixLines(
 				originalContent,
 				originalDoc.languageId,
 				originalDoc.uri.fsPath
 			);
 			const fixByLine = new Map<number, string>();
-			for (const suggestion of suggestedFixes.suggestions) {
+			for (const suggestion of analysis.suggestions) {
 				if (!fixByLine.has(suggestion.line)) {
 					fixByLine.set(suggestion.line, suggestion.fixedText);
 				}
 			}
 
+			const locale = getLocale();
 			const lenses: vscode.CodeLens[] = [];
 			const topRange = new vscode.Range(0, 0, 0, 0);
+			const relativePath = vscode.workspace.asRelativePath(originalUri);
 			lenses.push(
 				new vscode.CodeLens(topRange, {
-					title: "✅ Apply all fixes",
+					title: `📄 ${locale.ui.previewTitlePath(relativePath)}`,
+					command: "code-shamer.scanning",
+				})
+			);
+			lenses.push(
+				new vscode.CodeLens(topRange, {
+					title: `✅ ${locale.ui.codeLensApplyAll}`,
 					command: "code-shamer.applyAllSuggestionsInFile",
+					arguments: [originalUri],
 				})
 			);
 			lenses.push(
 				new vscode.CodeLens(topRange, {
-					title: "✨ Apply this fix (cursor line)",
+					title: `✨ ${locale.ui.codeLensApplyCursor}`,
 					command: "code-shamer.applySuggestionAtCursor",
+					arguments: [originalUri],
 				})
 			);
 			lenses.push(
 				new vscode.CodeLens(topRange, {
-					title: "🙈 Not shame this line",
+					title: `🙈 ${locale.ui.codeLensIgnoreLine}`,
 					command: "code-shamer.ignoreSuggestionAtCursor",
+					arguments: [originalUri],
 				})
 			);
 			lenses.push(
 				new vscode.CodeLens(topRange, {
-					title: "🙈 Not shame this file",
+					title: `🙈 ${locale.ui.codeLensIgnoreFile}`,
 					command: "code-shamer.ignoreFileFromDiff",
+					arguments: [originalUri],
 				})
 			);
 
-			const processedLines = new Set<number>();
-
-			for (const match of result.matches) {
-				if (processedLines.has(match.line)) {
+			const processedSafeLines = new Set<number>();
+			for (const suggestion of analysis.suggestions) {
+				if (processedSafeLines.has(suggestion.line)) {
 					continue;
 				}
-				processedLines.add(match.line);
+				processedSafeLines.add(suggestion.line);
 
-				const range = new vscode.Range(match.line, 0, match.line, 0);
-
-				// Get the suggested fixed text from the codeshamer-fix document
-				// Because fixProvider maps lines 1:1 (using empty strings for removals),
-				// the line numbers perfectly align.
-				const fixedText = fixByLine.get(match.line);
-				if (typeof fixedText !== "string") {
-					continue;
-				}
-
+				const range = new vscode.Range(suggestion.line, 0, suggestion.line, 0);
 				lenses.push(
 					new vscode.CodeLens(range, {
-						title: "✨ Corregir con sugerencia",
+						title: `✨ ${locale.ui.codeLensApplyInline}`,
 						command: "code-shamer.applyFixInline",
-						arguments: [originalUri, match.line, fixedText],
+						arguments: [
+							originalUri,
+							suggestion.line,
+							suggestion.fixedText,
+						],
 					})
 				);
-
 				lenses.push(
 					new vscode.CodeLens(range, {
-						title: "🙈 Ignorar shame inline",
+						title: `🙈 ${locale.ui.codeLensIgnoreInline}`,
 						command: "code-shamer.ignoreInline",
-						arguments: [originalUri, match.line, match.pattern.id],
+						arguments: [
+							originalUri,
+							suggestion.line,
+							suggestion.match.pattern.id,
+						],
+					})
+				);
+			}
+
+			const processedReviewLines = new Set<number>();
+			for (const review of analysis.reviews) {
+				if (
+					processedSafeLines.has(review.line) ||
+					processedReviewLines.has(review.line)
+				) {
+					continue;
+				}
+				processedReviewLines.add(review.line);
+
+				const range = new vscode.Range(review.line, 0, review.line, 0);
+				const hintText = locale.t(review.hintKey);
+				const titleText = locale.t(review.titleKey);
+				lenses.push(
+					new vscode.CodeLens(range, {
+						title: `💡 ${locale.ui.codeLensReviewHint}: ${titleText} — ${hintText}`,
+						command: "code-shamer.scanning",
+					})
+				);
+				lenses.push(
+					new vscode.CodeLens(range, {
+						title: `🙈 ${locale.ui.codeLensIgnoreInline}`,
+						command: "code-shamer.ignoreInline",
+						arguments: [
+							originalUri,
+							review.line,
+							review.match.pattern.id,
+						],
 					})
 				);
 			}
