@@ -72,6 +72,7 @@ export class ShamePanelProvider implements vscode.WebviewViewProvider {
 	}
 
 	private _getLoadingHtml(): string {
+		const locale = getLocale();
 		return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <style>
@@ -79,7 +80,7 @@ body { display:flex; align-items:center; justify-content:center; height:100vh; m
   font-family:var(--vscode-font-family); color:var(--vscode-foreground); background:var(--vscode-sideBar-background); }
 .loading { opacity:.7; font-size:13px; }
 </style></head>
-<body><div class="loading">Scanning workspace...</div></body></html>`;
+<body><div class="loading">${this._esc(locale.ui.scanningWorkspace)}</div></body></html>`;
 	}
 
 	private _getHtml(result: WorkspaceShameResult): string {
@@ -186,11 +187,9 @@ body {
           <div class="level-title">${level.emoji} ${this._esc(levelTitle)}</div>
         </div>
         <div class="roast">"${this._esc(roastMessage)}"</div>
-        <div class="stats">${result.totalShames} shame${
-			result.totalShames !== 1 ? "s" : ""
-		} in ${filesWithShames.length} file${
-			filesWithShames.length !== 1 ? "s" : ""
-		}</div>
+        <div class="stats">${this._esc(
+			locale.ui.panelHeaderTitle(result.totalShames, filesWithShames.length)
+		)}</div>
       </div>
     </div>
   </div>
