@@ -1,7 +1,6 @@
-import { Locale } from "./types";
+import { Locale, UiStrings } from "./types";
 
 const messages: Record<string, string> = {
-	// JavaScript
 	"shame.js.consoleLog": "console.log() left in code — the debugger's graffiti",
 	"shame.js.consoleWarn": "console.warn/error() left in code",
 	"shame.js.varUsage": "'var' detected — it's not 2015 anymore",
@@ -17,8 +16,9 @@ const messages: Record<string, string> = {
 	"shame.js.documentWrite": "document.write() — time traveling to 1999",
 	"shame.js.innerHTML": "innerHTML assignment — XSS says thank you",
 	"shame.js.setTimeoutString": "setTimeout with string — eval() in disguise",
+	"shame.js.letArrayPush": "let-then-push pattern — prefer immutable construction",
+	"shame.js.switchNoBreak": "switch case without break — fallthrough is rarely intentional",
 
-	// TypeScript
 	"shame.ts.anyType": "': any' detected — TypeScript is crying",
 	"shame.ts.asAny": "'as any' — the TypeScript escape hatch of shame",
 	"shame.ts.tsIgnore": "@ts-ignore — if you can't fix it, ignore it right?",
@@ -26,7 +26,6 @@ const messages: Record<string, string> = {
 	"shame.ts.nonNullAssertion": "Non-null assertion (!) — trust me bro, it's not null",
 	"shame.ts.expectErrorNoReason": "@ts-expect-error without explanation — future you will hate you",
 
-	// Python
 	"shame.py.print": "print() left in code — the Python console.log",
 	"shame.py.bareExcept": "Bare 'except:' — Pokemon exception handling (gotta catch 'em all)",
 	"shame.py.exceptPass": "'except: pass' — the sound of errors vanishing into the void",
@@ -38,7 +37,6 @@ const messages: Record<string, string> = {
 	"shame.py.hardcodedPassword": "Hardcoded password — security auditors love this",
 	"shame.py.typeIgnore": "'# type: ignore' — the mypy escape hatch",
 
-	// Java
 	"shame.java.sysout": "System.out.println — the Java dev's print statement",
 	"shame.java.syserr": "System.err.println — at least it's stderr",
 	"shame.java.emptyCatch": "Empty catch block — exceptions go in, nothing comes out",
@@ -49,7 +47,6 @@ const messages: Record<string, string> = {
 	"shame.java.suppressWarnings": "@SuppressWarnings — if you suppress it, it doesn't exist",
 	"shame.java.catchThrowable": "Catching Throwable — catching literally everything, including OutOfMemoryError",
 
-	// C/C++
 	"shame.cpp.printf": "printf() left in code",
 	"shame.cpp.cout": "std::cout left in code",
 	"shame.cpp.goto": "goto detected — Dijkstra is rolling in his grave",
@@ -61,7 +58,6 @@ const messages: Record<string, string> = {
 	"shame.cpp.sprintf": "sprintf() detected — use snprintf() for safety",
 	"shame.cpp.strcpy": "strcpy() detected — buffer overflow classic",
 
-	// C
 	"shame.c.printf": "printf() left in code",
 	"shame.c.goto": "goto detected — spaghetti code guaranteed",
 	"shame.c.gets": "gets() detected — this function was literally removed from C11",
@@ -71,15 +67,14 @@ const messages: Record<string, string> = {
 	"shame.c.strcat": "strcat() — another buffer overflow classic",
 	"shame.c.voidPointer": "void* — type safety? Never heard of it",
 
-	// Dart
 	"shame.dart.print": "print() left in code — use a proper logger",
 	"shame.dart.dynamic": "'dynamic' type — Dart's any equivalent",
 	"shame.dart.forceUnwrap": "Force unwrap (!) — null safety? Who needs it",
 	"shame.dart.debugPrint": "debugPrint() left in code",
 	"shame.dart.emptyCatch": "Empty catch block — Flutter errors go brr",
 	"shame.dart.runtimeType": ".runtimeType — prefer 'is' checks",
+	"shame.dart.deepNesting": "Deep widget nesting — extract widgets for readability",
 
-	// PHP
 	"shame.php.echo": "echo statement — might be debug output",
 	"shame.php.varDump": "var_dump() — the PHP debugger's best friend",
 	"shame.php.printR": "print_r() — still debugging?",
@@ -91,18 +86,202 @@ const messages: Record<string, string> = {
 	"shame.php.dieExit": "die()/exit() — graceful shutdown? Never heard of it",
 	"shame.php.global": "'global' keyword — dependency injection exists, you know",
 
-	// Common
+	"shame.html.inlineStyle": "Inline style attribute — extract to a CSS class",
+	"shame.html.marquee": "<marquee> tag — welcome to GeoCities",
+	"shame.html.brUsage": "Stacked <br> tags — use real layout elements",
+	"shame.html.centerTag": "<center> tag — deprecated since HTML 4",
+
+	"shame.css.important": "!important flag — sledgehammer for specificity",
+	"shame.css.universalWildcard": "Universal '*' selector — broad and slow",
+
 	"shame.common.todo": "TODO found — a promise to your future self you'll probably break",
 	"shame.common.fixme": "FIXME found — at least you're honest about it",
 	"shame.common.hack": "HACK marker — technical debt, officially acknowledged",
 	"shame.common.xxx": "XXX marker — something's definitely wrong here",
+	"shame.common.nestedLoops": "Nested loops — quadratic complexity warning",
 	"shame.common.longLine": "Line exceeds 200 characters — that's a paragraph, not a line of code",
 	"shame.common.commentedCode": "Commented-out code — git remembers, you don't have to",
 	"shame.common.noNewlineEof": "No newline at end of file — POSIX disapproves",
 };
 
+const fixes: Record<string, string> = {
+	"fix.js.varUsage.title": "Replace 'var' with 'let'",
+	"fix.js.looseEquality.title": "Replace '==' with '==='",
+	"fix.js.looseInequality.title": "Replace '!=' with '!=='",
+	"fix.js.debugger.title": "Remove 'debugger' statement",
+	"fix.js.consoleLog.title": "Remove console statement",
+	"fix.js.alert.title": "Remove 'alert()' call",
+	"fix.js.eval.title": "Review eval() usage",
+	"fix.js.emptyCatch.title": "Review empty catch block",
+	"fix.js.nestedTernary.title": "Review nested ternary",
+	"fix.js.newFunction.title": "Review new Function() usage",
+	"fix.js.documentWrite.title": "Review document.write usage",
+	"fix.js.setTimeoutString.title": "Review setTimeout with string",
+	"fix.js.letArrayPush.title": "Review let-then-push pattern",
+	"fix.js.switchNoBreak.title": "Review switch fallthrough",
+
+	"fix.ts.tsIgnore.title": "Replace @ts-ignore with @ts-expect-error",
+	"fix.ts.anyType.title": "Replace 'any' with a concrete type",
+	"fix.ts.asAny.title": "Avoid 'as any' cast",
+	"fix.ts.tsNocheck.title": "Remove @ts-nocheck and fix issues",
+	"fix.ts.nonNullAssertion.title": "Replace '!' with a null guard",
+	"fix.ts.expectErrorNoReason.title": "Add a reason to @ts-expect-error",
+
+	"fix.py.print.title": "Remove print() statement",
+	"fix.py.bareExcept.title": "Replace 'except:' with 'except Exception:'",
+	"fix.py.exceptPass.title": "Review 'except: pass' usage",
+	"fix.py.importStar.title": "Replace 'import *' with explicit imports",
+	"fix.py.global.title": "Replace 'global' with explicit dependency",
+	"fix.py.mutableDefault.title": "Replace mutable default argument",
+	"fix.py.exec.title": "Review exec() usage",
+	"fix.py.eval.title": "Review eval() usage",
+	"fix.py.hardcodedPassword.title": "Move password to environment/config",
+	"fix.py.typeIgnore.title": "Address the underlying mypy error",
+
+	"fix.java.sysout.title": "Remove System.out.println",
+	"fix.java.syserr.title": "Remove System.err.println",
+	"fix.java.emptyCatch.title": "Log or rethrow the exception",
+	"fix.java.systemExit.title": "Replace System.exit() with proper exit",
+	"fix.java.rawType.title": "Use generic type arguments",
+	"fix.java.stringConcatLoop.title": "Use StringBuilder",
+	"fix.java.threadSleep.title": "Use a proper concurrency primitive",
+	"fix.java.suppressWarnings.title": "Address the suppressed warning",
+	"fix.java.catchThrowable.title": "Catch a more specific exception",
+
+	"fix.cpp.printf.title": "Remove printf() debug statement",
+	"fix.cpp.cout.title": "Remove std::cout debug statement",
+	"fix.cpp.goto.title": "Replace goto with structured control flow",
+	"fix.cpp.gets.title": "Replace gets() with fgets()",
+	"fix.cpp.malloc.title": "Use std::unique_ptr or std::make_unique",
+	"fix.cpp.rawPointerNew.title": "Use a smart pointer",
+	"fix.cpp.usingNamespaceStd.title": "Qualify identifiers with std::",
+	"fix.cpp.defineConstant.title": "Use constexpr instead of #define",
+	"fix.cpp.sprintf.title": "Replace sprintf() with snprintf()",
+	"fix.cpp.strcpy.title": "Replace strcpy() with strncpy() or std::string",
+
+	"fix.c.printf.title": "Remove printf() debug statement",
+	"fix.c.goto.title": "Replace goto with structured control flow",
+	"fix.c.gets.title": "Replace gets() with fgets()",
+	"fix.c.malloc.title": "Match malloc() with free()",
+	"fix.c.sprintf.title": "Replace sprintf() with snprintf()",
+	"fix.c.strcpy.title": "Replace strcpy() with strncpy()",
+	"fix.c.strcat.title": "Replace strcat() with strncat()",
+	"fix.c.voidPointer.title": "Use a typed pointer",
+
+	"fix.dart.print.title": "Remove print() statement",
+	"fix.dart.debugPrint.title": "Remove debugPrint() statement",
+	"fix.dart.dynamic.title": "Replace 'dynamic' with explicit type",
+	"fix.dart.forceUnwrap.title": "Use null-safe access",
+	"fix.dart.emptyCatch.title": "Log or rethrow the exception",
+	"fix.dart.runtimeType.title": "Use 'is' checks instead",
+	"fix.dart.deepNesting.title": "Extract nested widgets",
+
+	"fix.php.echo.title": "Remove echo statement",
+	"fix.php.varDump.title": "Remove var_dump() statement",
+	"fix.php.printR.title": "Remove print_r() statement",
+	"fix.php.eval.title": "Review eval() usage",
+	"fix.php.mysqlDeprecated.title": "Replace mysql_* with mysqli_* or PDO",
+	"fix.php.variableVariables.title": "Replace variable variables with arrays",
+	"fix.php.errorSuppression.title": "Remove '@' suppression",
+	"fix.php.extract.title": "Replace extract() with explicit assignment",
+	"fix.php.dieExit.title": "Replace die()/exit() with proper flow",
+	"fix.php.global.title": "Replace 'global' with dependency injection",
+
+	"fix.html.inlineStyle.title": "Move inline style to a CSS class",
+	"fix.html.marquee.title": "Replace <marquee> with CSS animation",
+	"fix.html.brUsage.title": "Replace stacked <br> with proper layout",
+	"fix.html.centerTag.title": "Replace <center> with CSS",
+
+	"fix.css.important.title": "Refactor selector to avoid !important",
+	"fix.css.universalWildcard.title": "Use a more specific selector",
+
+	"fix.common.todo.title": "Address TODO marker",
+	"fix.common.fixme.title": "Address FIXME marker",
+	"fix.common.hack.title": "Address HACK marker",
+	"fix.common.xxx.title": "Address XXX marker",
+	"fix.common.nestedLoops.title": "Refactor nested loops",
+};
+
+const hints: Record<string, string> = {
+	"hint.js.eval": "Avoid eval(); parse JSON, use a switch, or pass functions instead.",
+	"hint.js.emptyCatch": "Log the error or rethrow; silently swallowing errors hides bugs.",
+	"hint.js.nestedTernary": "Extract to an if/else or named helper for readability.",
+	"hint.js.newFunction": "new Function() executes arbitrary code; refactor to use closures.",
+	"hint.js.documentWrite": "Use DOM APIs (createElement/appendChild) or a framework.",
+	"hint.js.setTimeoutString": "Pass a function reference instead of a string to setTimeout.",
+	"hint.js.letArrayPush": "Build the array via map/filter/spread for clarity and immutability.",
+	"hint.js.switchNoBreak": "Add an explicit break/return, or document the intentional fallthrough.",
+
+	"hint.ts.anyType": "Replace 'any' with a precise type or 'unknown' plus a guard.",
+	"hint.ts.asAny": "Narrow with a type guard or use 'as unknown as T' only as last resort.",
+	"hint.ts.tsNocheck": "Remove @ts-nocheck and fix the underlying type errors.",
+	"hint.ts.nonNullAssertion": "Use optional chaining (?.) or an explicit null check.",
+	"hint.ts.expectErrorNoReason": "Document why this error is expected: @ts-expect-error: <reason>.",
+
+	"hint.py.exceptPass": "At minimum, log the exception; never silently swallow errors.",
+	"hint.py.importStar": "List the explicit names you import to avoid namespace pollution.",
+	"hint.py.global": "Pass values as arguments or use a class to hold state.",
+	"hint.py.mutableDefault": "Use None as default and create the mutable inside the function.",
+	"hint.py.exec": "Avoid exec(); refactor to call a known function or use a registry.",
+	"hint.py.eval": "Use ast.literal_eval for data, or call a real function for logic.",
+	"hint.py.hardcodedPassword": "Read secrets from env vars or a secrets manager.",
+	"hint.py.typeIgnore": "Fix the underlying type error or narrow with cast/assert.",
+
+	"hint.java.emptyCatch": "Log via a logger and either rethrow or return a sentinel value.",
+	"hint.java.systemExit": "Throw a structured exception or return an exit code from main.",
+	"hint.java.rawType": "Use generics: List<String> rather than List.",
+	"hint.java.stringConcatLoop": "Use StringBuilder inside loops for O(n) concatenation.",
+	"hint.java.threadSleep": "Use scheduled executors or condition variables instead.",
+	"hint.java.suppressWarnings": "Address the warning; suppress only when truly necessary.",
+	"hint.java.catchThrowable": "Catch a specific subclass; never swallow Errors like OOM.",
+
+	"hint.dart.dynamic": "Use a concrete type or a generic; reserve dynamic for true unknowns.",
+	"hint.dart.forceUnwrap": "Use ?., null checks, or pattern matching instead of !.",
+	"hint.dart.emptyCatch": "Log via Flutter's logger and rethrow when appropriate.",
+	"hint.dart.runtimeType": "Use 'is' checks; runtimeType is slow and brittle.",
+	"hint.dart.deepNesting": "Extract widgets into named StatelessWidget subclasses.",
+
+	"hint.php.eval": "Avoid eval(); use a switch or callable map instead.",
+	"hint.php.mysqlDeprecated": "Use mysqli_* prepared statements or PDO with parameter binding.",
+	"hint.php.variableVariables": "Use an associative array and access by key.",
+	"hint.php.errorSuppression": "Handle the error explicitly; @ hides real problems.",
+	"hint.php.extract": "Assign variables explicitly to keep code readable and safe.",
+	"hint.php.dieExit": "Use proper return paths and exception handling.",
+	"hint.php.global": "Inject dependencies via constructor or function parameters.",
+
+	"hint.html.inlineStyle": "Move the rule to a stylesheet and reference it via class.",
+	"hint.html.marquee": "Use CSS animations or transitions for motion effects.",
+	"hint.html.brUsage": "Use semantic HTML (paragraphs, lists) instead of stacked <br>.",
+	"hint.html.centerTag": "Use CSS (text-align/center, margin auto) instead of <center>.",
+
+	"hint.css.important": "Increase specificity or refactor cascading rules instead of !important.",
+	"hint.css.universalWildcard": "Target specific elements; '*' affects everything and is slow.",
+
+	"hint.c.goto": "Refactor with structured loops or break/continue.",
+	"hint.c.gets": "Replace with fgets(buf, sizeof buf, stdin) for bounded reads.",
+	"hint.c.malloc": "Pair every malloc with free; consider RAII patterns or arenas.",
+	"hint.c.sprintf": "Use snprintf() with explicit size to avoid overflow.",
+	"hint.c.strcpy": "Use strncpy() with bounds, or strlcpy where available.",
+	"hint.c.strcat": "Use strncat() with bounds, or build via snprintf().",
+	"hint.c.voidPointer": "Prefer typed pointers; void* loses type information.",
+
+	"hint.cpp.goto": "Use structured control flow (loops, break, return).",
+	"hint.cpp.gets": "Use std::getline or fgets for bounded reads.",
+	"hint.cpp.malloc": "Prefer std::make_unique / std::make_shared.",
+	"hint.cpp.rawPointerNew": "Wrap with std::unique_ptr / std::shared_ptr.",
+	"hint.cpp.usingNamespaceStd": "Use std:: prefix or import specific names.",
+	"hint.cpp.defineConstant": "Use 'constexpr' or 'const' typed constants.",
+	"hint.cpp.sprintf": "Use snprintf() or std::format for safe formatting.",
+	"hint.cpp.strcpy": "Use std::string or strncpy() with bounds.",
+
+	"hint.common.todo": "Convert to a tracked ticket or remove if obsolete.",
+	"hint.common.fixme": "Schedule the fix or remove the marker once addressed.",
+	"hint.common.hack": "Plan a refactor; document why the hack is needed for now.",
+	"hint.common.xxx": "Investigate the marked code and resolve.",
+	"hint.common.nestedLoops": "Refactor to a single pass, hash lookup, or extract a helper.",
+};
+
 const roasts: Record<string, string> = {
-	// Clean (0 shames)
 	"roast.clean.1": "Your code is so clean, it squeaks! What's your secret?",
 	"roast.clean.2": "Zero shames? Are you even writing code or just admiring your cursor?",
 	"roast.clean.3": "Impeccable. Uncle Bob would shed a tear of joy.",
@@ -110,7 +289,6 @@ const roasts: Record<string, string> = {
 	"roast.clean.5": "Your code is cleaner than my apartment. And that's not saying much, but still.",
 	"roast.clean.6": "Spotless. Did you write this or did a linter achieve sentience?",
 
-	// Low (1-24 score)
 	"roast.low.1": "A few rough edges, but nothing to lose sleep over.",
 	"roast.low.2": "Almost perfect. Just a couple of skeletons in the closet.",
 	"roast.low.3": "Minor sins. Your code goes to confession, not prison.",
@@ -118,7 +296,6 @@ const roasts: Record<string, string> = {
 	"roast.low.5": "Your code just needs a light dusting, not a full renovation.",
 	"roast.low.6": "You're on the edge of greatness. Just a few console.logs standing in the way.",
 
-	// Medium (25-74 score)
 	"roast.medium.1": "Your code has... character. Lots of character.",
 	"roast.medium.2": "It works, but it's held together with duct tape and prayers.",
 	"roast.medium.3": "Not great, not terrible. The 3.6 Roentgen of code quality.",
@@ -126,7 +303,6 @@ const roasts: Record<string, string> = {
 	"roast.medium.5": "Your code reads like a mystery novel. Nobody knows what happens next. Including you.",
 	"roast.medium.6": "I've seen worse. But I've also seen much, much better.",
 
-	// High (75-149 score)
 	"roast.high.1": "This code needs a support group.",
 	"roast.high.2": "I've seen cleaner code in a 2AM hackathon.",
 	"roast.high.3": "Your code is so messy, even git blame refuses responsibility.",
@@ -134,7 +310,6 @@ const roasts: Record<string, string> = {
 	"roast.high.5": "If spaghetti code was a sport, you'd be an Olympic gold medalist.",
 	"roast.high.6": "Your code has more issues than a magazine stand.",
 
-	// Extreme (150+ score)
 	"roast.extreme.1": "Is this code or a cry for help?",
 	"roast.extreme.2": "This codebase has more red flags than a Soviet parade.",
 	"roast.extreme.3": "Congratulations, you've achieved legendary shame status.",
@@ -165,7 +340,47 @@ const achievements: Record<string, string> = {
 	"achievement.persistent.desc": "Run 10 scans on this workspace",
 };
 
+const ui: UiStrings = {
+	scanningWorkspace: "Scanning workspace...",
+	noShamesYet: "No shames detected yet. Run a scan to begin.",
+	noShamesInFile: "No shames in this file — well done!",
+	noRecommendedFixes: "CodeShamer: No recommended fixes available for this file.",
+	openCodeShamerDiff: "CodeShamer: Open a CodeShamer fixes diff first.",
+	noSuggestedChange: "CodeShamer: No suggested change for the current line.",
+	noSuggestedChangesToApply: "CodeShamer: No suggested changes to apply.",
+	cacheCleared: "CodeShamer: Cache cleared. Run scan again.",
+	ruleDisabled: (ruleId) =>
+		`CodeShamer: Rule '${ruleId}' has been disabled in the workspace.`,
+	diffTitle: (relativePath) => `CodeShamer: ${relativePath} ↔ Fixed`,
+	statusBarScanning: "$(sync~spin) CodeShamer: Scanning workspace...",
+	statusBarTooltip: "CodeShamer scan is running",
+	achievementBanner: (title) => `CodeShamer Achievement: ${title}`,
+	codeLensApplyAll: "Apply all fixes",
+	codeLensApplyCursor: "Apply this fix (cursor line)",
+	codeLensIgnoreLine: "Don't shame this line",
+	codeLensIgnoreFile: "Don't shame this file",
+	codeLensApplyInline: "Apply suggested fix",
+	codeLensIgnoreInline: "Ignore this shame inline",
+	codeLensReviewHint: "Review hint",
+	codeActionIgnoreLine: "CodeShamer: Ignore this line",
+	codeActionIgnoreFile: "CodeShamer: Ignore this entire file",
+	codeActionDisableWorkspace: (ruleId) =>
+		`CodeShamer: Disable rule '${ruleId}' for the whole workspace`,
+	codeActionShowRecommendedFix: "CodeShamer: Show recommended fix",
+	panelHeaderTitle: (totalShames, fileCount) =>
+		`${totalShames} shame${totalShames !== 1 ? "s" : ""} in ${fileCount} file${
+			fileCount !== 1 ? "s" : ""
+		}`,
+	previewTitlePath: (relativePath) => `File: ${relativePath}`,
+	scanningStatusMessage: "CodeShamer is scanning your workspace...",
+	scanCompletedStatusMessage: (files, shames) =>
+		`CodeShamer: ${shames} shame${shames !== 1 ? "s" : ""} in ${files} file${
+			files !== 1 ? "s" : ""
+		}`,
+};
+
 const en: Locale = {
+	id: "en",
 	disabled: "Extension disabled",
 	languageDisabled: "Language not enabled",
 	noCode: "No code to judge",
@@ -175,12 +390,25 @@ const en: Locale = {
 	shameTooltip: (score: number) => `Shame level ${score}`,
 	details: (score: number, roast: string) =>
 		`🔥 Shame ${score}/10 — ${roast}`,
-	shameMessage: (messageKey: string) =>
-		messages[messageKey] ?? messageKey,
+	shameMessage: (messageKey: string) => messages[messageKey] ?? messageKey,
+	t: (key: string) => {
+		return (
+			messages[key] ??
+			fixes[key] ??
+			hints[key] ??
+			roasts[key] ??
+			levels[key] ??
+			achievements[key] ??
+			key
+		);
+	},
+	ui,
 	messages,
 	roasts,
 	levels,
 	achievements,
+	fixes,
+	hints,
 };
 
 export default en;

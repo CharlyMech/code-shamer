@@ -6,7 +6,7 @@ import es from "./es";
 export type { Locale };
 
 export function getLocale(): Locale {
-	const lang = vscode.env.language;
+	const lang = vscode.env.language ?? "en";
 
 	if (lang.startsWith("es")) {
 		return es;
@@ -14,3 +14,5 @@ export function getLocale(): Locale {
 
 	return en;
 }
+
+export { en, es };

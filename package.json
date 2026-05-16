@@ -1,7 +1,7 @@
 {
   "name": "code-shamer",
-  "displayName": "CodeShamer",
-  "description": "Detects bad coding patterns and shames you into writing better code 🔥",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
   "version": "0.0.1",
   "publisher": "YOUR_PUBLISHER_ID",
   "license": "MIT",
@@ -37,24 +37,24 @@
     "commands": [
       {
         "command": "code-shamer.scanWorkspace",
-        "title": "CodeShamer: Scan Workspace",
+        "title": "%command.scanWorkspace.title%",
         "icon": "$(refresh)"
       },
       {
         "command": "code-shamer.showPanel",
-        "title": "CodeShamer: Show Shame Panel"
+        "title": "%command.showPanel.title%"
       },
       {
         "command": "code-shamer.clearCache",
-        "title": "CodeShamer: Clear Cache"
+        "title": "%command.clearCache.title%"
       },
       {
         "command": "code-shamer.disableRuleWorkspace",
-        "title": "CodeShamer: Disable Rule in Workspace"
+        "title": "%command.disableRuleWorkspace.title%"
       },
       {
         "command": "code-shamer.scanCurrentFile",
-        "title": "CodeShamer: Review Fixes",
+        "title": "%command.scanCurrentFile.title%",
         "icon": {
           "light": "media/codeshamer-activity.svg",
           "dark": "media/codeshamer-activity.svg"
@@ -62,45 +62,45 @@
       },
       {
         "command": "code-shamer.reviewFixes",
-        "title": "CodeShamer: Review Fixes (Diff)",
+        "title": "%command.reviewFixes.title%",
         "icon": "$(wand)"
       },
       {
         "command": "code-shamer.scanning",
-        "title": "CodeShamer: Scanning...",
+        "title": "%command.scanning.title%",
         "icon": "$(sync~spin)"
       },
       {
         "command": "code-shamer.showFileShames",
-        "title": "CodeShamer: Shame Detected!",
+        "title": "%command.showFileShames.title%",
         "icon": "$(flame)"
       },
       {
         "command": "code-shamer.applyFixInline",
-        "title": "Aplicar corrección"
+        "title": "%command.applyFixInline.title%"
       },
       {
         "command": "code-shamer.ignoreInline",
-        "title": "Ignorar shame inline"
+        "title": "%command.ignoreInline.title%"
       },
       {
         "command": "code-shamer.ignoreFileFromDiff",
-        "title": "Ignorar shame en archivo",
+        "title": "%command.ignoreFileFromDiff.title%",
         "icon": "$(eye-closed)"
       },
       {
         "command": "code-shamer.applySuggestionAtCursor",
-        "title": "CodeShamer: Apply Suggested Change at Cursor",
+        "title": "%command.applySuggestionAtCursor.title%",
         "icon": "$(check)"
       },
       {
         "command": "code-shamer.applyAllSuggestionsInFile",
-        "title": "CodeShamer: Apply All Suggested Changes in File",
+        "title": "%command.applyAllSuggestionsInFile.title%",
         "icon": "$(check-all)"
       },
       {
         "command": "code-shamer.ignoreSuggestionAtCursor",
-        "title": "CodeShamer: Ignore Suggested Change at Cursor",
+        "title": "%command.ignoreSuggestionAtCursor.title%",
         "icon": "$(eye-closed)"
       }
     ],
@@ -108,7 +108,7 @@
       "activitybar": [
         {
           "id": "codeshamer",
-          "title": "CodeShamer",
+          "title": "%viewsContainers.codeshamer.title%",
           "icon": "media/codeshamer-activity.svg"
         }
       ]
@@ -118,13 +118,13 @@
         {
           "type": "tree",
           "id": "codeshamer.treeView",
-          "name": "Files",
+          "name": "%views.codeshamer.treeView.name%",
           "icon": "media/codeshamer-activity.svg"
         },
         {
           "type": "webview",
           "id": "codeshamer.panelView",
-          "name": "Shame Report",
+          "name": "%views.codeshamer.panelView.name%",
           "icon": "media/codeshamer-activity.svg"
         }
       ]
@@ -172,43 +172,43 @@
       "view/title": [
         {
           "command": "code-shamer.scanWorkspace",
-          "when": "view == codeshamer.panelView",
+          "when": "view == codeshamer.treeView",
           "group": "navigation"
         }
       ]
     },
     "configuration": {
-      "title": "CodeShamer",
+      "title": "%config.title%",
       "properties": {
         "codeShamer.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Enable or disable CodeShamer analysis"
+          "description": "%config.enable.description%"
         },
         "codeShamer.enableRoasts": {
           "type": "boolean",
           "default": true,
-          "description": "Show humorous roast messages after scans"
+          "description": "%config.enableRoasts.description%"
         },
         "codeShamer.showStartupNotifications": {
           "type": "boolean",
           "default": true,
-          "description": "Allow startup (F5 activation) notifications and status messages"
+          "description": "%config.showStartupNotifications.description%"
         },
         "codeShamer.showAchievementNotifications": {
           "type": "boolean",
           "default": true,
-          "description": "Show achievement notifications after scans"
+          "description": "%config.showAchievementNotifications.description%"
         },
         "codeShamer.showScanCompletionStatusMessage": {
           "type": "boolean",
           "default": true,
-          "description": "Show a short completion status message after scans"
+          "description": "%config.showScanCompletionStatusMessage.description%"
         },
         "codeShamer.showStatusBarOnlyWhileScanning": {
           "type": "boolean",
           "default": false,
-          "description": "Only show CodeShamer status bar item while scanning"
+          "description": "%config.showStatusBarOnlyWhileScanning.description%"
         },
         "codeShamer.enabledLanguages": {
           "type": "array",
@@ -226,14 +226,14 @@
             "html",
             "css"
           ],
-          "description": "Language IDs to analyze"
+          "description": "%config.enabledLanguages.description%"
         },
         "codeShamer.severityThreshold": {
           "type": "number",
           "default": 1,
           "minimum": 1,
           "maximum": 5,
-          "description": "Minimum severity level to report (1 = all, 5 = critical only)"
+          "description": "%config.severityThreshold.description%"
         },
         "codeShamer.excludePatterns": {
           "type": "array",
@@ -282,22 +282,27 @@
             "**/.ruff_cache/**",
             "**/.tox/**"
           ],
-          "description": "Glob patterns for files to exclude from scanning"
+          "description": "%config.excludePatterns.description%"
         },
         "codeShamer.scanOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically re-scan when files are saved"
+          "description": "%config.scanOnSave.description%"
+        },
+        "codeShamer.scanOnEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.scanOnEdit.description%"
         },
         "codeShamer.maxFilesToScan": {
           "type": "number",
           "default": 5000,
-          "description": "Maximum number of files to scan in the workspace"
+          "description": "%config.maxFilesToScan.description%"
         },
         "codeShamer.disabledRules": {
           "type": "array",
           "default": [],
-          "description": "Rule IDs to disable (e.g. ['js-magic-number', 'common-todo'])"
+          "description": "%config.disabledRules.description%"
         },
         "codeShamer.inlineShameUnderlineColors": {
           "type": "object",
@@ -308,7 +313,7 @@
             "4": "#E06C75",
             "5": "#BE5046"
           },
-          "description": "Per-severity underline colors for inline shame decorations"
+          "description": "%config.inlineShameUnderlineColors.description%"
         }
       }
     }
