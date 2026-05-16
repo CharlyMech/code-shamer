@@ -15,20 +15,20 @@ const ACHIEVEMENTS: Achievement[] = [
 		id: "first-scan",
 		titleKey: "achievement.firstScan.title",
 		descriptionKey: "achievement.firstScan.desc",
-		icon: "$(eye)",
+		icon: "🏅",
 		check: (h) => h.getHistory().length >= 1,
 	},
 	{
 		id: "first-fix",
 		titleKey: "achievement.firstFix.title",
 		descriptionKey: "achievement.firstFix.desc",
-		icon: "$(trophy)",
+		icon: "🏆",
 		check: (h) => {
 			const hist = h.getHistory();
 			return (
 				hist.length >= 2 &&
 				hist[hist.length - 1].totalShames <
-				hist[hist.length - 2].totalShames
+					hist[hist.length - 2].totalShames
 			);
 		},
 	},
@@ -36,7 +36,7 @@ const ACHIEVEMENTS: Achievement[] = [
 		id: "half-shame",
 		titleKey: "achievement.halfShame.title",
 		descriptionKey: "achievement.halfShame.desc",
-		icon: "$(rocket)",
+		icon: "🚀",
 		check: (h) => {
 			const hist = h.getHistory();
 			if (hist.length < 2) {
@@ -52,7 +52,7 @@ const ACHIEVEMENTS: Achievement[] = [
 		id: "clean-slate",
 		titleKey: "achievement.cleanSlate.title",
 		descriptionKey: "achievement.cleanSlate.desc",
-		icon: "$(star-full)",
+		icon: "⭐",
 		check: (h) => {
 			const hist = h.getHistory();
 			return hist.length > 0 && hist[hist.length - 1].totalShames === 0;
@@ -62,7 +62,7 @@ const ACHIEVEMENTS: Achievement[] = [
 		id: "persistent",
 		titleKey: "achievement.persistent.title",
 		descriptionKey: "achievement.persistent.desc",
-		icon: "$(heart)",
+		icon: "❤️",
 		check: (h) => h.getHistory().length >= 10,
 	},
 ];
@@ -70,7 +70,7 @@ const ACHIEVEMENTS: Achievement[] = [
 const UNLOCKED_KEY = "codeshamer.achievements";
 
 export class AchievementTracker {
-	constructor(private context: vscode.ExtensionContext) { }
+	constructor(private context: vscode.ExtensionContext) {}
 
 	checkAndNotify(history: ShameHistory, notificationsEnabled = true): void {
 		const locale = getLocale();
@@ -89,9 +89,8 @@ export class AchievementTracker {
 				if (notificationsEnabled) {
 					const title =
 						locale.achievements[ach.titleKey] ?? ach.titleKey;
-					vscode.window.showInformationMessage(
-						`${ach.icon} CodeShamer Achievement: ${title}`
-					);
+					const banner = locale.ui.achievementBanner(title);
+					vscode.window.showInformationMessage(`${ach.icon} ${banner}`);
 				}
 			}
 		}
