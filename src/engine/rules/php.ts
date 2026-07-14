@@ -70,5 +70,22 @@ export const phpRules: ShamePattern[] = [
 		severity: 3,
 		category: "style",
 		messageKey: "shame.php.global",
+		hintKey: "hint.php.global",
+	},
+	{
+		id: "php-request-superglobal",
+		pattern: /\$_REQUEST\b/,
+		severity: 3,
+		category: "security",
+		messageKey: "shame.php.requestSuperglobal",
+		hintKey: "hint.php.requestSuperglobal",
+	},
+	{
+		id: "php-short-tag",
+		pattern: /<\?(?!php|=)/,
+		severity: 3,
+		category: "style",
+		messageKey: "shame.php.shortTag",
+		hintKey: "hint.php.shortTag",
 	},
 ];

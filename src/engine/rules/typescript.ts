@@ -9,6 +9,7 @@ export const typescriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "reliability",
 		messageKey: "shame.ts.anyType",
+		hintKey: "hint.ts.anyType",
 	},
 	{
 		id: "ts-as-any",
@@ -18,6 +19,7 @@ export const typescriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "reliability",
 		messageKey: "shame.ts.asAny",
+		hintKey: "hint.ts.asAny",
 	},
 	{
 		id: "ts-ignore",
@@ -26,6 +28,7 @@ export const typescriptRules: ShamePattern[] = [
 		confidence: 1,
 		category: "maintenance",
 		messageKey: "shame.ts.tsIgnore",
+		hintKey: "hint.ts.tsIgnore",
 	},
 	{
 		id: "ts-nocheck",
@@ -34,6 +37,7 @@ export const typescriptRules: ShamePattern[] = [
 		confidence: 1,
 		category: "maintenance",
 		messageKey: "shame.ts.tsNocheck",
+		hintKey: "hint.ts.tsNocheck",
 	},
 	{
 		id: "ts-non-null-assertion",
@@ -43,6 +47,7 @@ export const typescriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "reliability",
 		messageKey: "shame.ts.nonNullAssertion",
+		hintKey: "hint.ts.nonNullAssertion",
 	},
 	{
 		id: "ts-expect-error-no-reason",
@@ -51,5 +56,6 @@ export const typescriptRules: ShamePattern[] = [
 		confidence: 0.9,
 		category: "maintenance",
 		messageKey: "shame.ts.expectErrorNoReason",
+		hintKey: "hint.ts.expectErrorNoReason",
 	},
 ];

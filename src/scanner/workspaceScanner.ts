@@ -8,17 +8,18 @@ import {
 } from "../engine/types";
 import { getSettings } from "../settings";
 
-const LANG_EXTENSIONS: Record<string, string[]> = {
+export const LANG_EXTENSIONS: Record<string, string[]> = {
 	javascript: ["js", "jsx", "mjs", "cjs"],
 	javascriptreact: ["jsx"],
 	typescript: ["ts", "tsx", "mts", "cts"],
 	typescriptreact: ["tsx"],
 	python: ["py"],
-	java: ["java"],
-	cpp: ["cpp", "cxx", "cc", "hpp", "hxx"],
-	c: ["c", "h"],
-	dart: ["dart"],
 	php: ["php"],
+	html: ["html", "htm"],
+	css: ["css"],
+	vue: ["vue"],
+	svelte: ["svelte"],
+	astro: ["astro"],
 };
 
 export class WorkspaceScanner {
@@ -35,6 +36,34 @@ export class WorkspaceScanner {
 
 	get lastResult(): WorkspaceShameResult | undefined {
 		return this._lastResult;
+	}
+
+	async scanFile(uri: vscode.Uri): Promise<FileShameResult> {
+		const doc = await vscode.workspace.openTextDocument(uri);
+		let statMtime = 0;
+		try {
+			const stat = await vscode.workspace.fs.stat(uri);
+			statMtime = stat.mtime;
+		} catch {
+			// use 0 if stat unavailable
+		}
+
+		const result = analyzeFile(
+			doc.getText(),
+			doc.languageId,
+			uri.fsPath
+		);
+		this.cache.set(uri.fsPath, statMtime, result);
+
+		const existingFiles = this._lastResult?.files ?? [];
+		const otherFiles = existingFiles.filter(
+			(f) => f.filePath !== uri.fsPath
+		);
+		const files = [...otherFiles, result];
+		const wsResult = this.aggregateResults(files);
+		this._lastResult = wsResult;
+		this._onDidScanComplete.fire(wsResult);
+		return result;
 	}
 
 	async scanWorkspace(): Promise<WorkspaceShameResult> {

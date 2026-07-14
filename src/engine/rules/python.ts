@@ -71,5 +71,23 @@ export const pythonRules: ShamePattern[] = [
 		severity: 2,
 		category: "maintenance",
 		messageKey: "shame.py.typeIgnore",
+		hintKey: "hint.py.typeIgnore",
+	},
+	{
+		id: "py-open-without-with",
+		pattern: /\bopen\s*\([^)]+\)(?![\s\S]{0,80}\bwith\b)/,
+		severity: 2,
+		category: "reliability",
+		messageKey: "shame.py.openWithoutWith",
+		hintKey: "hint.py.openWithoutWith",
+		multiline: true,
+	},
+	{
+		id: "py-pickle-loads",
+		pattern: /\bpickle\.loads\s*\(/,
+		severity: 5,
+		category: "security",
+		messageKey: "shame.py.pickleLoads",
+		hintKey: "hint.py.pickleLoads",
 	},
 ];

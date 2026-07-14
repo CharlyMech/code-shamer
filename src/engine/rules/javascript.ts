@@ -1,5 +1,9 @@
 import { ShamePattern } from "../types";
 
+const isReactContext = (ctx: { languageId: string; filePath: string }) =>
+	ctx.languageId.includes("react") ||
+	/\.(jsx|tsx)$/.test(ctx.filePath);
+
 export const javascriptRules: ShamePattern[] = [
 	{
 		id: "js-console-log",
@@ -9,6 +13,7 @@ export const javascriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "debug",
 		messageKey: "shame.js.consoleLog",
+		hintKey: "hint.js.consoleLog",
 	},
 	{
 		id: "js-var-usage",
@@ -18,6 +23,7 @@ export const javascriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "style",
 		messageKey: "shame.js.varUsage",
+		hintKey: "hint.js.varUsage",
 	},
 	{
 		id: "js-loose-equality",
@@ -27,6 +33,7 @@ export const javascriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "reliability",
 		messageKey: "shame.js.looseEquality",
+		hintKey: "hint.js.looseEquality",
 	},
 	{
 		id: "js-loose-inequality",
@@ -36,6 +43,7 @@ export const javascriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "reliability",
 		messageKey: "shame.js.looseInequality",
+		hintKey: "hint.js.looseInequality",
 	},
 	{
 		id: "js-eval",
@@ -45,6 +53,7 @@ export const javascriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "security",
 		messageKey: "shame.js.eval",
+		hintKey: "hint.js.eval",
 	},
 	{
 		id: "js-debugger",
@@ -54,6 +63,7 @@ export const javascriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "debug",
 		messageKey: "shame.js.debugger",
+		hintKey: "hint.js.debugger",
 	},
 	{
 		id: "js-empty-catch",
@@ -61,6 +71,7 @@ export const javascriptRules: ShamePattern[] = [
 		severity: 3,
 		category: "reliability",
 		messageKey: "shame.js.emptyCatch",
+		hintKey: "hint.js.emptyCatch",
 	},
 	{
 		id: "js-alert",
@@ -70,6 +81,7 @@ export const javascriptRules: ShamePattern[] = [
 		engine: "ast",
 		category: "debug",
 		messageKey: "shame.js.alert",
+		hintKey: "hint.js.alert",
 	},
 	{
 		id: "js-nested-ternary",
@@ -77,6 +89,7 @@ export const javascriptRules: ShamePattern[] = [
 		severity: 2,
 		category: "style",
 		messageKey: "shame.js.nestedTernary",
+		hintKey: "hint.js.nestedTernary",
 	},
 	{
 		id: "js-new-function",
@@ -84,6 +97,7 @@ export const javascriptRules: ShamePattern[] = [
 		severity: 5,
 		category: "security",
 		messageKey: "shame.js.newFunction",
+		hintKey: "hint.js.newFunction",
 	},
 	{
 		id: "js-document-write",
@@ -91,6 +105,7 @@ export const javascriptRules: ShamePattern[] = [
 		severity: 4,
 		category: "security",
 		messageKey: "shame.js.documentWrite",
+		hintKey: "hint.js.documentWrite",
 	},
 	{
 		id: "js-settimeout-string",
@@ -98,6 +113,7 @@ export const javascriptRules: ShamePattern[] = [
 		severity: 4,
 		category: "security",
 		messageKey: "shame.js.setTimeoutString",
+		hintKey: "hint.js.setTimeoutString",
 	},
 	{
 		id: "js-let-array-push",
@@ -105,6 +121,7 @@ export const javascriptRules: ShamePattern[] = [
 		severity: 3,
 		category: "style",
 		messageKey: "shame.js.letArrayPush",
+		hintKey: "hint.js.letArrayPush",
 		multiline: true,
 	},
 	{
@@ -113,6 +130,33 @@ export const javascriptRules: ShamePattern[] = [
 		severity: 5,
 		category: "reliability",
 		messageKey: "shame.js.switchNoBreak",
+		hintKey: "hint.js.switchNoBreak",
 		multiline: true,
+	},
+	{
+		id: "js-react-key-index",
+		pattern: /key\s*=\s*\{\s*(?:index|i)\s*\}/,
+		severity: 3,
+		category: "reliability",
+		messageKey: "shame.js.reactKeyIndex",
+		hintKey: "hint.js.reactKeyIndex",
+		when: isReactContext,
+	},
+	{
+		id: "js-react-dangerous-html",
+		pattern: /dangerouslySetInnerHTML\s*=/,
+		severity: 5,
+		category: "security",
+		messageKey: "shame.js.reactDangerousHtml",
+		hintKey: "hint.js.reactDangerousHtml",
+		when: isReactContext,
+	},
+	{
+		id: "js-inner-html",
+		pattern: /\.innerHTML\s*=/,
+		severity: 4,
+		category: "security",
+		messageKey: "shame.js.innerHTML",
+		hintKey: "hint.js.innerHTML",
 	},
 ];

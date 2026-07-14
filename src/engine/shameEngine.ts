@@ -1,8 +1,36 @@
-import { ShameMatch, FileShameResult } from "./types";
+import { ShameMatch, FileShameResult, RuleContext, ShamePattern } from "./types";
 import { getRulesForLanguage } from "./languageRules";
 import { getIgnoreState, isIgnoredByDirective } from "./ignoreParser";
 import { getSettings } from "../settings";
 import { analyzeAstRules } from "./astRules";
+
+const TEST_FILE_PATTERN =
+	/\.(test|spec)\.[cm]?[jt]sx?$|__tests__\/|\/__tests__\/|\.test\.|\.spec\./i;
+
+function isTestFilePath(filePath: string): boolean {
+	return TEST_FILE_PATTERN.test(filePath);
+}
+
+function ruleApplies(rule: ShamePattern, ctx: RuleContext): boolean {
+	if (rule.when && !rule.when(ctx)) {
+		return false;
+	}
+	if (ctx.isTestFile) {
+		const skipInTests = new Set([
+			"js-console-log",
+			"py-print",
+			"php-echo",
+			"php-var-dump",
+			"php-print-r",
+			"dart-print",
+			"dart-debug-print",
+		]);
+		if (skipInTests.has(rule.id)) {
+			return false;
+		}
+	}
+	return true;
+}
 
 export function analyzeFile(
 	content: string,
@@ -12,10 +40,16 @@ export function analyzeFile(
 	const settings = getSettings();
 	const rules = getRulesForLanguage(languageId);
 	const disabledRules = new Set(settings.disabledRules);
+	const ruleCtx: RuleContext = {
+		filePath,
+		languageId,
+		isTestFile: isTestFilePath(filePath),
+	};
 	const activeRules = rules.filter(
 		(r) =>
 			!disabledRules.has(r.id) &&
-			r.severity >= settings.severityThreshold
+			r.severity >= settings.severityThreshold &&
+			ruleApplies(r, ruleCtx)
 	);
 
 	// Mask string literals to avoid false positives in strings, preserving newlines

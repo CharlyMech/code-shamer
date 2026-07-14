@@ -23,13 +23,12 @@ const DEFAULT_LANGUAGES = [
 	"typescript",
 	"typescriptreact",
 	"python",
-	"java",
-	"cpp",
-	"c",
-	"dart",
 	"php",
 	"html",
 	"css",
+	"vue",
+	"svelte",
+	"astro",
 ];
 
 export function getSettings(): CodeShamerSettings {

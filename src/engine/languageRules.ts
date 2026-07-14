@@ -2,28 +2,29 @@ import { ShamePattern } from "./types";
 import { javascriptRules } from "./rules/javascript";
 import { typescriptRules } from "./rules/typescript";
 import { pythonRules } from "./rules/python";
-import { javaRules } from "./rules/java";
 import { htmlRules } from "./rules/html";
 import { cssRules } from "./rules/css";
-import { dartRules } from "./rules/dart";
 import { phpRules } from "./rules/php";
-import { cRules } from "./rules/c";
-import { cppRules } from "./rules/cpp";
+import { vueRules } from "./rules/vue";
+import { svelteRules } from "./rules/svelte";
+import { astroRules } from "./rules/astro";
+import { angularRules } from "./rules/angular";
 import { commonRules } from "./rules/common";
 
+const angularAugment = [...angularRules];
+
 const languageSpecificRules: Record<string, ShamePattern[]> = {
-	javascript: javascriptRules,
-	javascriptreact: javascriptRules,
-	typescript: [...javascriptRules, ...typescriptRules],
-	typescriptreact: [...javascriptRules, ...typescriptRules],
+	javascript: [...javascriptRules, ...angularAugment],
+	javascriptreact: [...javascriptRules, ...angularAugment],
+	typescript: [...javascriptRules, ...typescriptRules, ...angularAugment],
+	typescriptreact: [...javascriptRules, ...typescriptRules, ...angularAugment],
 	python: pythonRules,
-	java: javaRules,
-	dart: dartRules,
 	php: phpRules,
-	html: htmlRules,
+	html: [...htmlRules, ...angularAugment],
 	css: cssRules,
-	c: cRules,
-	cpp: cppRules,
+	vue: vueRules,
+	svelte: svelteRules,
+	astro: astroRules,
 };
 
 export function getRulesForLanguage(languageId: string): ShamePattern[] {

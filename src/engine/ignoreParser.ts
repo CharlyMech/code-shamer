@@ -42,12 +42,12 @@ export function getIgnoreState(lines: string[]): IgnoreState {
 			const ids = ruleIgnoredLines.get(targetLine) ?? new Set<string>();
 			ids.add(ruleMatch[1]);
 			ruleIgnoredLines.set(targetLine, ids);
-		}
-
-		for (const pattern of NEXT_LINE_IGNORE_PATTERNS) {
-			if (pattern.test(line)) {
-				allRulesIgnoredLines.add(i + 1);
-				break;
+		} else {
+			for (const pattern of NEXT_LINE_IGNORE_PATTERNS) {
+				if (pattern.test(line)) {
+					allRulesIgnoredLines.add(i + 1);
+					break;
+				}
 			}
 		}
 	}

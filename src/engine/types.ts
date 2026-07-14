@@ -6,6 +6,12 @@ export type ShameCategory =
 	| "maintenance"
 	| "reliability";
 
+export interface RuleContext {
+	filePath: string;
+	languageId: string;
+	isTestFile: boolean;
+}
+
 export interface ShamePattern {
 	id: string;
 	pattern: RegExp;
@@ -13,9 +19,11 @@ export interface ShamePattern {
 	confidence?: number;
 	category: ShameCategory;
 	messageKey: string;
+	hintKey?: string;
 	multiline?: boolean;
 	fixTemplate?: string;
 	engine?: "regex" | "ast";
+	when?: (ctx: RuleContext) => boolean;
 }
 
 export interface ShameMatch {
