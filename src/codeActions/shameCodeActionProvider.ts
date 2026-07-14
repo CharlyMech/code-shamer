@@ -1,8 +1,5 @@
 import * as vscode from "vscode";
-import {
-	getFixEntry,
-	hasAnyRecommendation,
-} from "../engine/fixes/registry";
+import { getFixEntry } from "../engine/fixes/registry";
 import { getLocale } from "../i18n";
 
 interface FixContext {
@@ -131,23 +128,6 @@ export class ShameCodeActionProvider implements vscode.CodeActionProvider {
 			};
 			disableWorkspaceAction.diagnostics = [diag];
 			actions.push(disableWorkspaceAction);
-
-			if (hasAnyRecommendation(ruleId)) {
-				const showFixAction = new vscode.CodeAction(
-					locale.ui.codeActionShowRecommendedFix,
-					vscode.CodeActionKind.QuickFix
-				);
-				showFixAction.command = {
-					command: "code-shamer.reviewFixes",
-					title: locale.ui.codeActionShowRecommendedFix,
-					arguments: [document.uri],
-				};
-				showFixAction.diagnostics = [diag];
-				if (!entry || entry.safety !== "safe") {
-					showFixAction.isPreferred = true;
-				}
-				actions.push(showFixAction);
-			}
 		}
 
 		return actions;

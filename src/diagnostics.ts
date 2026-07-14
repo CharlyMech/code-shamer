@@ -2,8 +2,25 @@ import * as vscode from "vscode";
 import { WorkspaceShameResult, ShameMatch } from "./engine/types";
 import { getLocale } from "./i18n";
 import { getSettings } from "./settings";
+import {
+	findOverlappingExternalDiagnostic,
+	linterHintForRule,
+} from "./integrations/workspaceTooling";
 
 const DIAGNOSTIC_SOURCE = "CodeShamer";
+
+function resolveHintKey(
+	pattern: import("./engine/types").ShamePattern
+): string | undefined {
+	if (pattern.hintKey) {
+		return pattern.hintKey;
+	}
+	const dash = pattern.id.indexOf("-");
+	if (dash === -1) {
+		return undefined;
+	}
+	return `hint.${pattern.id.slice(0, dash)}.${pattern.id.slice(dash + 1).replace(/-/g, ".")}`;
+}
 
 export class ShameDiagnosticsManager {
 	private collection: vscode.DiagnosticCollection;
@@ -136,7 +153,19 @@ export class ShameDiagnosticsManager {
 			match.endColumn ??
 			Math.max(match.column + 1, match.lineText.trimEnd().length);
 		const range = new vscode.Range(startLine, startCol, endLine, endCol);
-		const message = locale.shameMessage(match.pattern.messageKey);
+		let message = locale.shameMessage(match.pattern.messageKey);
+		const hintKey = resolveHintKey(match.pattern);
+		if (hintKey) {
+			const hint = locale.hintMessage(hintKey);
+			if (hint && hint !== hintKey) {
+				message = `${message}\n${hint}`;
+			}
+		}
+		const linterHint = linterHintForRule(match.pattern.id);
+		if (linterHint) {
+			message = `${message}\n${linterHint}`;
+		}
+
 		const diag = new vscode.Diagnostic(
 			range,
 			message,
@@ -144,6 +173,22 @@ export class ShameDiagnosticsManager {
 		);
 		diag.source = DIAGNOSTIC_SOURCE;
 		diag.code = match.pattern.id;
+
+		const fileUri = vscode.Uri.file(match.filePath);
+		const external = findOverlappingExternalDiagnostic(
+			fileUri,
+			range,
+			match.pattern.id
+		);
+		if (external?.source && external.message) {
+			diag.relatedInformation = [
+				new vscode.DiagnosticRelatedInformation(
+					new vscode.Location(fileUri, external.range),
+					`${external.source}: ${external.message}`
+				),
+			];
+		}
+
 		diagnostics.push(diag);
 		const severityRanges = perSeverity.get(match.pattern.severity) ?? [];
 		severityRanges.push(range);
