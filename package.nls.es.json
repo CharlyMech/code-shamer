@@ -1,21 +1,14 @@
 {
 	"extension.displayName": "CodeShamer",
-	"extension.description": "Detecta malos patrones de codigo y te avergüenza para que escribas mejor 🔥",
+	"extension.description": "Detecta malos patrones de codigo y te averguenza para que escribas mejor",
 
 	"command.scanWorkspace.title": "CodeShamer: Escanear workspace",
 	"command.showPanel.title": "CodeShamer: Mostrar panel de shames",
 	"command.clearCache.title": "CodeShamer: Limpiar cache",
 	"command.disableRuleWorkspace.title": "CodeShamer: Desactivar regla en workspace",
-	"command.scanCurrentFile.title": "CodeShamer: Revisar correcciones",
-	"command.reviewFixes.title": "CodeShamer: Revisar correcciones (diff)",
+	"command.shameThisFile.title": "CodeShamer: Avergonzar este archivo",
 	"command.scanning.title": "CodeShamer: Escaneando...",
-	"command.showFileShames.title": "CodeShamer: Shame detectado!",
-	"command.applyFixInline.title": "CodeShamer: Aplicar correccion sugerida",
 	"command.ignoreInline.title": "CodeShamer: Ignorar shame inline",
-	"command.ignoreFileFromDiff.title": "CodeShamer: Ignorar shames en este archivo",
-	"command.applySuggestionAtCursor.title": "CodeShamer: Aplicar sugerencia en la linea del cursor",
-	"command.applyAllSuggestionsInFile.title": "CodeShamer: Aplicar todas las sugerencias en el archivo",
-	"command.ignoreSuggestionAtCursor.title": "CodeShamer: Ignorar sugerencia en la linea del cursor",
 
 	"viewsContainers.codeshamer.title": "CodeShamer",
 	"views.codeshamer.treeView.name": "Archivos",
@@ -34,6 +27,6 @@
 	"config.scanOnSave.description": "Re-escanear automaticamente al guardar los archivos",
 	"config.scanOnEdit.description": "Re-escanear automaticamente mientras editas (con debounce)",
 	"config.maxFilesToScan.description": "Numero maximo de archivos a escanear en el workspace",
-	"config.disabledRules.description": "Ids de reglas a desactivar (p. ej. ['js-magic-number', 'common-todo'])",
+	"config.disabledRules.description": "Ids de reglas a desactivar (p. ej. ['js-console-log', 'common-todo'])",
 	"config.inlineShameUnderlineColors.description": "Colores de subrayado por severidad para los shames inline"
 }

@@ -1,21 +1,14 @@
 {
 	"extension.displayName": "CodeShamer",
-	"extension.description": "Detects bad coding patterns and shames you into writing better code 🔥",
+	"extension.description": "Detects bad coding patterns and shames you into writing better code",
 
 	"command.scanWorkspace.title": "CodeShamer: Scan Workspace",
 	"command.showPanel.title": "CodeShamer: Show Shame Panel",
 	"command.clearCache.title": "CodeShamer: Clear Cache",
 	"command.disableRuleWorkspace.title": "CodeShamer: Disable Rule in Workspace",
-	"command.scanCurrentFile.title": "CodeShamer: Review Fixes",
-	"command.reviewFixes.title": "CodeShamer: Review Fixes (Diff)",
+	"command.shameThisFile.title": "CodeShamer: Shame this file",
 	"command.scanning.title": "CodeShamer: Scanning...",
-	"command.showFileShames.title": "CodeShamer: Shame Detected!",
-	"command.applyFixInline.title": "CodeShamer: Apply suggested fix",
 	"command.ignoreInline.title": "CodeShamer: Ignore inline shame",
-	"command.ignoreFileFromDiff.title": "CodeShamer: Ignore shames in this file",
-	"command.applySuggestionAtCursor.title": "CodeShamer: Apply Suggested Change at Cursor",
-	"command.applyAllSuggestionsInFile.title": "CodeShamer: Apply All Suggested Changes in File",
-	"command.ignoreSuggestionAtCursor.title": "CodeShamer: Ignore Suggested Change at Cursor",
 
 	"viewsContainers.codeshamer.title": "CodeShamer",
 	"views.codeshamer.treeView.name": "Files",
@@ -34,6 +27,6 @@
 	"config.scanOnSave.description": "Automatically re-scan when files are saved",
 	"config.scanOnEdit.description": "Re-scan files automatically while editing (debounced)",
 	"config.maxFilesToScan.description": "Maximum number of files to scan in the workspace",
-	"config.disabledRules.description": "Rule IDs to disable (e.g. ['js-magic-number', 'common-todo'])",
+	"config.disabledRules.description": "Rule IDs to disable (e.g. ['js-console-log', 'common-todo'])",
 	"config.inlineShameUnderlineColors.description": "Per-severity underline colors for inline shame decorations"
 }

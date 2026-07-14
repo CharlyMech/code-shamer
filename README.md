@@ -23,7 +23,7 @@
   <!-- <a href="https://github.com/charlymech/code-shamer/actions"><img src="https://img.shields.io/github/actions/workflow/status/charlymech/code-shamer/ci.yml?branch=main&style=flat-square&logo=githubactions&label=CI" alt="CI"/></a> -->
   <!-- <a href="https://github.com/charlymech/code-shamer/releases"><img src="https://img.shields.io/github/v/release/charlymech/code-shamer?style=flat-square&logo=github&label=Release" alt="GitHub Release"/></a> -->
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"/></a>
-  <img src="https://img.shields.io/badge/languages-8-orange?style=flat-square" alt="Languages"/>
+  <img src="https://img.shields.io/badge/languages-11-orange?style=flat-square" alt="Languages"/>
   <img src="https://img.shields.io/badge/rules-80%2B-red?style=flat-square" alt="Rules"/>
 </p>
 
@@ -46,7 +46,7 @@ CodeShamer detects patterns that shouldn't be in production code, grouped into s
 -  **Performance** — known inefficiency patterns in loops and threading
 -  **Maintenance debt** — marker comments (`TODO`, `FIXME`, `HACK`) and suppressed warnings
 
-Across **8 languages**: JavaScript, TypeScript, Python, Java, C, C++, Dart, PHP.
+Across **JavaScript & TypeScript** (including React), **HTML & CSS**, **Python**, **PHP**, and framework files (**Vue**, **Svelte**, **Astro**, plus Angular-oriented rules on `.component` files).
 
 ---
 
@@ -58,7 +58,7 @@ CodeShamer scans your **entire project** automatically on startup and on every s
 
 ### 📊 Shame Report Panel
 
-Click the flame icon in the Activity Bar to open your **Shame Report**:
+Click the CodeShamer icon in the Activity Bar to open your **Shame Report**:
 
 -  Your current **shame level** and score
 -  Breakdown by category (debug, security, style…)
@@ -190,11 +190,6 @@ Full walkthrough with screenshots and troubleshooting: **[GETTING_STARTED.md](do
 ---
 
 ## Current Status & Roadmap 🚀
-
-### 🚧 Currently Working On
-- **Split View & Actions**: Enhancing the interactive diff interface for applying and ignoring shames natively.
-- **Shame Engine Improvements**: Better regex parsing, avoiding false positives in strings, and smarter auto-fixes.
-- **UI & UX**: Polishing Editor Toolbar icons, CodeLenses, and responsive sidebars.
 
 ### 📝 TODO (Pending)
 - Optimize large-workspace scanning performance with better caching.

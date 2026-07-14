@@ -53,17 +53,12 @@
         "title": "%command.disableRuleWorkspace.title%"
       },
       {
-        "command": "code-shamer.scanCurrentFile",
-        "title": "%command.scanCurrentFile.title%",
+        "command": "code-shamer.shameThisFile",
+        "title": "%command.shameThisFile.title%",
         "icon": {
-          "light": "media/codeshamer-activity.svg",
-          "dark": "media/codeshamer-activity.svg"
+          "light": "media/codeshamer-activity-light.svg",
+          "dark": "media/codeshamer-activity-dark.svg"
         }
-      },
-      {
-        "command": "code-shamer.reviewFixes",
-        "title": "%command.reviewFixes.title%",
-        "icon": "$(wand)"
       },
       {
         "command": "code-shamer.scanning",
@@ -71,37 +66,8 @@
         "icon": "$(sync~spin)"
       },
       {
-        "command": "code-shamer.showFileShames",
-        "title": "%command.showFileShames.title%",
-        "icon": "$(flame)"
-      },
-      {
-        "command": "code-shamer.applyFixInline",
-        "title": "%command.applyFixInline.title%"
-      },
-      {
         "command": "code-shamer.ignoreInline",
         "title": "%command.ignoreInline.title%"
-      },
-      {
-        "command": "code-shamer.ignoreFileFromDiff",
-        "title": "%command.ignoreFileFromDiff.title%",
-        "icon": "$(eye-closed)"
-      },
-      {
-        "command": "code-shamer.applySuggestionAtCursor",
-        "title": "%command.applySuggestionAtCursor.title%",
-        "icon": "$(check)"
-      },
-      {
-        "command": "code-shamer.applyAllSuggestionsInFile",
-        "title": "%command.applyAllSuggestionsInFile.title%",
-        "icon": "$(check-all)"
-      },
-      {
-        "command": "code-shamer.ignoreSuggestionAtCursor",
-        "title": "%command.ignoreSuggestionAtCursor.title%",
-        "icon": "$(eye-closed)"
       }
     ],
     "viewsContainers": {
@@ -109,7 +75,7 @@
         {
           "id": "codeshamer",
           "title": "%viewsContainers.codeshamer.title%",
-          "icon": "media/codeshamer-activity.svg"
+          "icon": "media/codeshamer-activity-dark.svg"
         }
       ]
     },
@@ -119,54 +85,36 @@
           "type": "tree",
           "id": "codeshamer.treeView",
           "name": "%views.codeshamer.treeView.name%",
-          "icon": "media/codeshamer-activity.svg"
+          "icon": "media/codeshamer-activity-dark.svg"
         },
         {
           "type": "webview",
           "id": "codeshamer.panelView",
           "name": "%views.codeshamer.panelView.name%",
-          "icon": "media/codeshamer-activity.svg"
+          "icon": "media/codeshamer-activity-dark.svg"
         }
       ]
     },
+    "extensionRecommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "Vue.volar",
+      "svelte.svelte-vscode",
+      "astro-build.astro-vscode",
+      "ms-python.python",
+      "bmewburn.vscode-intelephense-client"
+    ],
     "menus": {
-      "view/item/context": [
-        {
-          "command": "code-shamer.reviewFixes",
-          "when": "view == codeshamer.treeView && viewItem == shameFile",
-          "group": "inline"
-        }
-      ],
       "editor/title": [
         {
-          "command": "code-shamer.ignoreFileFromDiff",
+          "command": "code-shamer.shameThisFile",
           "group": "navigation",
-          "when": "resourceScheme == codeshamer-fix"
-        },
-        {
-          "command": "code-shamer.applySuggestionAtCursor",
-          "group": "navigation@1",
-          "when": "resourceScheme == codeshamer-fix"
-        },
-        {
-          "command": "code-shamer.applyAllSuggestionsInFile",
-          "group": "navigation@2",
-          "when": "resourceScheme == codeshamer-fix"
-        },
-        {
-          "command": "code-shamer.scanCurrentFile",
-          "group": "navigation",
-          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css|c|cpp)/ && codeShamer.fileState != 'shames' && !codeShamer.isScanning"
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|php|html|css|vue|svelte|astro)/ && !codeShamer.isScanning"
         },
         {
           "command": "code-shamer.scanning",
           "group": "navigation",
-          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css|c|cpp)/ && codeShamer.isScanning"
-        },
-        {
-          "command": "code-shamer.showFileShames",
-          "group": "navigation",
-          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|java|dart|php|html|css|c|cpp)/ && codeShamer.fileState == 'shames' && !codeShamer.isScanning && !isInDiffEditor"
+          "when": "resourceLangId =~ /(javascript|javascriptreact|typescript|typescriptreact|python|php|html|css|vue|svelte|astro)/ && codeShamer.isScanning"
         }
       ],
       "view/title": [
@@ -218,13 +166,12 @@
             "typescript",
             "typescriptreact",
             "python",
-            "java",
-            "cpp",
-            "c",
-            "dart",
             "php",
             "html",
-            "css"
+            "css",
+            "vue",
+            "svelte",
+            "astro"
           ],
           "description": "%config.enabledLanguages.description%"
         },
