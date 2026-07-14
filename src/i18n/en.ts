@@ -1,41 +1,41 @@
 import { Locale, UiStrings } from "./types";
 
 const messages: Record<string, string> = {
-	"shame.js.consoleLog": "console.log() left in code — the debugger's graffiti",
-	"shame.js.consoleWarn": "console.warn/error() left in code",
-	"shame.js.varUsage": "'var' detected — it's not 2015 anymore",
-	"shame.js.looseEquality": "'==' used instead of '===' — type coercion is not your friend",
-	"shame.js.looseInequality": "'!=' used instead of '!==' — same story, different operator",
-	"shame.js.eval": "eval() detected — congratulations, you've opened Pandora's box",
-	"shame.js.debugger": "'debugger' statement left in code — hope this isn't production",
-	"shame.js.emptyCatch": "Empty catch block — swallowing errors since 1995",
-	"shame.js.alert": "alert() in code — are we building a 90s website?",
-	"shame.js.magicNumber": "Magic number detected — give it a name, it deserves one",
-	"shame.js.nestedTernary": "Nested ternary — because readability is overrated",
-	"shame.js.newFunction": "new Function() — eval()'s sneaky cousin",
-	"shame.js.documentWrite": "document.write() — time traveling to 1999",
-	"shame.js.innerHTML": "innerHTML assignment — XSS says thank you",
-	"shame.js.setTimeoutString": "setTimeout with string — eval() in disguise",
-	"shame.js.letArrayPush": "let-then-push pattern — prefer immutable construction",
-	"shame.js.switchNoBreak": "switch case without break — fallthrough is rarely intentional",
+	"shame.js.consoleLog": "You left console.log() in — production is not your personal diary",
+	"shame.js.consoleWarn": "Console noise still hanging around — your users aren't paid to read your debug drama",
+	"shame.js.varUsage": "You used 'var' — even Internet Explorer moved on, and that is saying something",
+	"shame.js.looseEquality": "You wrote '==' — JavaScript will surprise you, and not in a fun way",
+	"shame.js.looseInequality": "You wrote '!=' — same chaos as '==', just with extra confidence",
+	"shame.js.eval": "You called eval() — you basically invited arbitrary code to the party",
+	"shame.js.debugger": "You left debugger in — did you mean to pause prod, or just your career?",
+	"shame.js.emptyCatch": "Empty catch — errors went in, dignity went out",
+	"shame.js.alert": "alert() in 2026 — did you time-travel here from a GeoCities popup?",
+	"shame.js.magicNumber": "Magic number spotted — name it before it becomes folklore",
+	"shame.js.nestedTernary": "Nested ternary — readable code called, you sent it to voicemail",
+	"shame.js.newFunction": "new Function() — eval() wearing a fake mustache",
+	"shame.js.documentWrite": "document.write() — the DOM did not ask for this vandalism",
+	"shame.js.innerHTML": "innerHTML assignment — XSS is lining up to send you a thank-you card",
+	"shame.js.setTimeoutString": "setTimeout with a string — eval() cosplaying as a timer",
+	"shame.js.letArrayPush": "let + push loop — you can build arrays without the suffering arc",
+	"shame.js.switchNoBreak": "Switch fallthrough — unless this is intentional, your future self is already mad",
 
-	"shame.ts.anyType": "': any' detected — TypeScript is crying",
-	"shame.ts.asAny": "'as any' — the TypeScript escape hatch of shame",
-	"shame.ts.tsIgnore": "@ts-ignore — if you can't fix it, ignore it right?",
-	"shame.ts.tsNocheck": "@ts-nocheck — why even use TypeScript at this point?",
-	"shame.ts.nonNullAssertion": "Non-null assertion (!) — trust me bro, it's not null",
-	"shame.ts.expectErrorNoReason": "@ts-expect-error without explanation — future you will hate you",
+	"shame.ts.anyType": "': any' — you paid for TypeScript and chose chaos anyway",
+	"shame.ts.asAny": "'as any' — type safety left the chat",
+	"shame.ts.tsIgnore": "@ts-ignore — world-class strategy: hide the fire, keep the smoke",
+	"shame.ts.tsNocheck": "@ts-nocheck — congratulations, you turned TypeScript into JavaScript cosplay",
+	"shame.ts.nonNullAssertion": "Non-null assertion (!) — 'trust me bro' is not a type system",
+	"shame.ts.expectErrorNoReason": "@ts-expect-error with no reason — future you deserves an apology note",
 
-	"shame.py.print": "print() left in code — the Python console.log",
-	"shame.py.bareExcept": "Bare 'except:' — Pokemon exception handling (gotta catch 'em all)",
-	"shame.py.exceptPass": "'except: pass' — the sound of errors vanishing into the void",
-	"shame.py.importStar": "'import *' — namespace pollution at its finest",
-	"shame.py.global": "'global' keyword — sharing state like it's a potluck dinner",
-	"shame.py.mutableDefault": "Mutable default argument — a classic Python gotcha",
-	"shame.py.exec": "exec() detected — running arbitrary code, what could go wrong?",
-	"shame.py.eval": "eval() detected — because exec() wasn't dangerous enough",
-	"shame.py.hardcodedPassword": "Hardcoded password — security auditors love this",
-	"shame.py.typeIgnore": "'# type: ignore' — the mypy escape hatch",
+	"shame.py.print": "print() left in — your logs deserve dignity, not sidewalk chalk",
+	"shame.py.bareExcept": "Bare except — catching everything including your dignity",
+	"shame.py.exceptPass": "except: pass — the sound of bugs throwing a silent rave",
+	"shame.py.importStar": "import * — you imported a whole circus, naming optional",
+	"shame.py.global": "global keyword — shared mutable state, everyone's favorite villain",
+	"shame.py.mutableDefault": "Mutable default arg — Python's classic 'gotcha' and you walked right in",
+	"shame.py.exec": "exec() — running mystery code like it's a trust exercise",
+	"shame.py.eval": "eval() — because exec() wasn't reckless enough for you",
+	"shame.py.hardcodedPassword": "Hardcoded password — hackers just sent you a heart emoji",
+	"shame.py.typeIgnore": "# type: ignore — mypy is screaming, you're pretending it's fine",
 
 	"shame.java.sysout": "System.out.println — the Java dev's print statement",
 	"shame.java.syserr": "System.err.println — at least it's stderr",
@@ -75,33 +75,67 @@ const messages: Record<string, string> = {
 	"shame.dart.runtimeType": ".runtimeType — prefer 'is' checks",
 	"shame.dart.deepNesting": "Deep widget nesting — extract widgets for readability",
 
-	"shame.php.echo": "echo statement — might be debug output",
-	"shame.php.varDump": "var_dump() — the PHP debugger's best friend",
-	"shame.php.printR": "print_r() — still debugging?",
-	"shame.php.eval": "eval() — because PHP wasn't insecure enough",
-	"shame.php.mysqlDeprecated": "mysql_* functions — deprecated since PHP 5.5, removed in 7.0",
-	"shame.php.variableVariables": "$$variable — variable variables? Really?",
-	"shame.php.errorSuppression": "@ error suppression — hiding problems, one @ at a time",
-	"shame.php.extract": "extract() — creating variables out of thin air",
-	"shame.php.dieExit": "die()/exit() — graceful shutdown? Never heard of it",
-	"shame.php.global": "'global' keyword — dependency injection exists, you know",
+	"shame.php.echo": "echo in prod — did you mean to ship your debug thoughts?",
+	"shame.php.varDump": "var_dump() — your variables are on public display, enjoy the show",
+	"shame.php.printR": "print_r() — still treating the browser like phpMyAdmin?",
+	"shame.php.eval": "eval() in PHP — security auditors just canceled their vacation",
+	"shame.php.mysqlDeprecated": "mysql_* in 2026 — this API retired before some interns were born",
+	"shame.php.variableVariables": "$$variables — even PHP is judging you right now",
+	"shame.php.errorSuppression": "@ suppression — errors are real, your @ is just makeup",
+	"shame.php.extract": "extract() — surprise variables for everyone, including future you",
+	"shame.php.dieExit": "die()/exit() — graceful shutdown called, you sent it to voicemail",
+	"shame.php.global": "global in PHP — dependency injection exists, you know",
 
-	"shame.html.inlineStyle": "Inline style attribute — extract to a CSS class",
-	"shame.html.marquee": "<marquee> tag — welcome to GeoCities",
-	"shame.html.brUsage": "Stacked <br> tags — use real layout elements",
-	"shame.html.centerTag": "<center> tag — deprecated since HTML 4",
+	"shame.html.inlineStyle": "Inline styles — CSS files exist, they're not decorative",
+	"shame.html.marquee": "<marquee> — welcome back to 1998, please leave again",
+	"shame.html.brUsage": "Stacked <br> — layout by line break is not a personality trait",
+	"shame.html.centerTag": "<center> — HTML4 called, it wants its relic back",
 
-	"shame.css.important": "!important flag — sledgehammer for specificity",
-	"shame.css.universalWildcard": "Universal '*' selector — broad and slow",
+	"shame.css.important": "!important — you brought a sledgehammer to a specificity debate",
+	"shame.css.universalWildcard": "* selector — styling the entire universe because focus is hard",
+	"shame.css.zIndexMax": "z-index: 9999 — congratulations, you won the stacking war and lost maintainability",
+	"shame.css.outlineNone": "outline: none — keyboard users would like to find your buttons, thanks",
+	"shame.css.zeroPx": "0px — the extra pixels are free, your pride is expensive",
+	"shame.css.idSelector": "ID selector for styling — classes exist, they're cheaper emotionally",
 
-	"shame.common.todo": "TODO found — a promise to your future self you'll probably break",
-	"shame.common.fixme": "FIXME found — at least you're honest about it",
-	"shame.common.hack": "HACK marker — technical debt, officially acknowledged",
-	"shame.common.xxx": "XXX marker — something's definitely wrong here",
-	"shame.common.nestedLoops": "Nested loops — quadratic complexity warning",
-	"shame.common.longLine": "Line exceeds 200 characters — that's a paragraph, not a line of code",
-	"shame.common.commentedCode": "Commented-out code — git remembers, you don't have to",
-	"shame.common.noNewlineEof": "No newline at end of file — POSIX disapproves",
+	"shame.html.imgNoAlt": "Image with no alt — screen readers are staring at you in silence",
+	"shame.html.inputNoType": "Input without type — surprise forms are not a UX strategy",
+	"shame.html.inlineOnclick": "Inline onclick — HTML is not your junk drawer for JavaScript",
+	"shame.html.missingLang": "<html> without lang — accessibility called, you sent it to spam",
+	"shame.html.emptyHref": "href='#' — either use a button or commit to the link, pick a lane",
+	"shame.html.tableLayout": "Table layout in 2026 — CSS grid exists, it's free, it's modern",
+
+	"shame.js.reactKeyIndex": "key={index} — React will re-render your sins in alphabetical chaos",
+	"shame.js.reactDangerousHtml": "dangerouslySetInnerHTML — the name literally warned you, you ignored it",
+
+	"shame.py.openWithoutWith": "open() without with — file handles are not houseplants, they need closing",
+	"shame.py.pickleLoads": "pickle.loads() on untrusted data — that's not parsing, that's trust fall",
+
+	"shame.php.requestSuperglobal": "$_REQUEST — you merged GET and POST like it's a smoothie",
+	"shame.php.shortTag": "Short PHP tag — portability left the building",
+
+	"shame.vue.vHtml": "v-html — you're serving HTML trust-me-bro style",
+	"shame.vue.vForNoKey": "v-for without :key — Vue is guessing; your UI is gambling",
+	"shame.vue.optionsData": "data() returning shared state — every component gets the same trauma",
+
+	"shame.svelte.htmlInjection": "{@html} — user input just got VIP access to your DOM",
+	"shame.svelte.reactiveStatement": "Another $: line — your data flow is becoming fan fiction",
+
+	"shame.astro.setHtml": "set:html — you invited raw HTML to the server party",
+	"shame.astro.clientDirective": "client:* everywhere — hydration budget is crying",
+
+	"shame.angular.innerHtml": "[innerHTML] — XSS RSVP'd yes to your template",
+	"shame.angular.ngForNoTrackBy": "*ngFor without trackBy — Angular is re-rendering the whole timeline",
+	"shame.angular.anyInTemplate": ": any in Angular — strict templates are available, you chose vibes",
+
+	"shame.common.todo": "TODO — a love letter to future you, who is already tired",
+	"shame.common.fixme": "FIXME — at least you're honest that this ships on hope",
+	"shame.common.hack": "HACK — technical debt with a street name",
+	"shame.common.xxx": "XXX — code alarm bell, and you left it ringing",
+	"shame.common.nestedLoops": "Nested loops — O(n²) is not a flex, it's a warning label",
+	"shame.common.longLine": "200+ characters on one line — that's a tweet, not code",
+	"shame.common.commentedCode": "Commented-out code — git has memory, you don't need the museum exhibit",
+	"shame.common.noNewlineEof": "No newline at EOF — POSIX is disappointed, mildly but firmly",
 };
 
 const fixes: Record<string, string> = {
@@ -203,6 +237,16 @@ const fixes: Record<string, string> = {
 };
 
 const hints: Record<string, string> = {
+	"hint.js.consoleLog": "Remove before commit or use a logger with levels (debug/info/warn).",
+	"hint.js.varUsage": "Use let or const; var is function-scoped and hoisted oddly.",
+	"hint.js.looseEquality": "Use === so types are not coerced unexpectedly.",
+	"hint.js.looseInequality": "Use !== for the same reason as ===.",
+	"hint.js.debugger": "Remove debugger statements before shipping to production.",
+	"hint.js.alert": "Replace with UI notifications or logging in real applications.",
+	"hint.js.innerHTML": "Use textContent, DOMPurify, or framework-safe rendering.",
+	"hint.js.reactKeyIndex": "Use item.id or a stable business key instead of the loop index.",
+	"hint.js.reactDangerousHtml": "Sanitize with DOMPurify or render plain text when possible.",
+
 	"hint.js.eval": "Avoid eval(); parse JSON, use a switch, or pass functions instead.",
 	"hint.js.emptyCatch": "Log the error or rethrow; silently swallowing errors hides bugs.",
 	"hint.js.nestedTernary": "Extract to an if/else or named helper for readability.",
@@ -217,6 +261,7 @@ const hints: Record<string, string> = {
 	"hint.ts.tsNocheck": "Remove @ts-nocheck and fix the underlying type errors.",
 	"hint.ts.nonNullAssertion": "Use optional chaining (?.) or an explicit null check.",
 	"hint.ts.expectErrorNoReason": "Document why this error is expected: @ts-expect-error: <reason>.",
+	"hint.ts.tsIgnore": "Prefer @ts-expect-error with a reason, or fix the underlying type error.",
 
 	"hint.py.exceptPass": "At minimum, log the exception; never silently swallow errors.",
 	"hint.py.importStar": "List the explicit names you import to avoid namespace pollution.",
@@ -256,6 +301,37 @@ const hints: Record<string, string> = {
 
 	"hint.css.important": "Increase specificity or refactor cascading rules instead of !important.",
 	"hint.css.universalWildcard": "Target specific elements; '*' affects everything and is slow.",
+	"hint.css.zIndexMax": "Use a small scale (1–10) and isolate stacking with a wrapper.",
+	"hint.css.outlineNone": "Pair with :focus-visible { outline: ... } for keyboard users.",
+	"hint.css.zeroPx": "Write `0` instead of `0px` for margins, padding, and sizes.",
+	"hint.css.idSelector": "Prefer BEM-style classes so styles stay reusable and testable.",
+
+	"hint.html.imgNoAlt": "Add alt=\"\" for decorative images or a descriptive alt text.",
+	"hint.html.inputNoType": "Set type=\"email|password|number|...\" explicitly.",
+	"hint.html.inlineOnclick": "Attach listeners in a script module or framework handler.",
+	"hint.html.missingLang": "Add lang=\"en\" (or your locale) on the <html> element.",
+	"hint.html.emptyHref": "Use <button type=\"button\"> or href with preventDefault().",
+	"hint.html.tableLayout": "Use <div> with CSS grid/flex; reserve tables for tabular data.",
+
+	"hint.py.openWithoutWith": "Use `with open(...) as f:` so files close even on exceptions.",
+	"hint.py.pickleLoads": "Never unpickle data from untrusted sources.",
+
+	"hint.php.requestSuperglobal": "Read $_GET/$_POST explicitly to know the input source.",
+	"hint.php.shortTag": "Enable only <?php in team style guides and CI.",
+
+	"hint.vue.vHtml": "Sanitize HTML server-side or with a trusted library before v-html.",
+	"hint.vue.vForNoKey": "Add :key=\"item.id\" (or similar) on the element with v-for.",
+	"hint.vue.optionsData": "Return a new object from data() — never share one instance.",
+
+	"hint.svelte.htmlInjection": "Sanitize HTML; prefer {@render} or escaped text when possible.",
+	"hint.svelte.reactiveStatement": "Move complex logic into functions or derived stores.",
+
+	"hint.astro.setHtml": "Sanitize HTML; prefer Astro components over raw HTML injection.",
+	"hint.astro.clientDirective": "Hydrate only interactive islands; keep static HTML by default.",
+
+	"hint.angular.innerHtml": "Use DomSanitizer.sanitize or avoid binding raw HTML.",
+	"hint.angular.ngForNoTrackBy": "Add trackBy: trackById for stable list reconciliation.",
+	"hint.angular.anyInTemplate": "Type template contexts with interfaces or strict templates.",
 
 	"hint.c.goto": "Refactor with structured loops or break/continue.",
 	"hint.c.gets": "Replace with fgets(buf, sizeof buf, stdin) for bounded reads.",
@@ -341,37 +417,23 @@ const achievements: Record<string, string> = {
 };
 
 const ui: UiStrings = {
-	scanningWorkspace: "Scanning workspace...",
-	noShamesYet: "No shames detected yet. Run a scan to begin.",
-	noShamesInFile: "No shames in this file — well done!",
-	noRecommendedFixes: "CodeShamer: No recommended fixes available for this file.",
-	openCodeShamerDiff: "CodeShamer: Open a CodeShamer fixes diff first.",
-	noSuggestedChange: "CodeShamer: No suggested change for the current line.",
-	noSuggestedChangesToApply: "CodeShamer: No suggested changes to apply.",
+	scanningWorkspace: "Judging your workspace... please hold.",
+	noShamesYet: "No shames yet — either you're clean or we're still loading the roast menu.",
+	noShamesInFile: "This file is suspiciously clean. Are you sure you wrote it yourself?",
 	cacheCleared: "CodeShamer: Cache cleared. Run scan again.",
 	ruleDisabled: (ruleId) =>
 		`CodeShamer: Rule '${ruleId}' has been disabled in the workspace.`,
-	diffTitle: (relativePath) => `CodeShamer: ${relativePath} ↔ Fixed`,
 	statusBarScanning: "$(sync~spin) CodeShamer: Scanning workspace...",
 	statusBarTooltip: "CodeShamer scan is running",
 	achievementBanner: (title) => `CodeShamer Achievement: ${title}`,
-	codeLensApplyAll: "Apply all fixes",
-	codeLensApplyCursor: "Apply this fix (cursor line)",
-	codeLensIgnoreLine: "Don't shame this line",
-	codeLensIgnoreFile: "Don't shame this file",
-	codeLensApplyInline: "Apply suggested fix",
-	codeLensIgnoreInline: "Ignore this shame inline",
-	codeLensReviewHint: "Review hint",
 	codeActionIgnoreLine: "CodeShamer: Ignore this line",
 	codeActionIgnoreFile: "CodeShamer: Ignore this entire file",
 	codeActionDisableWorkspace: (ruleId) =>
 		`CodeShamer: Disable rule '${ruleId}' for the whole workspace`,
-	codeActionShowRecommendedFix: "CodeShamer: Show recommended fix",
 	panelHeaderTitle: (totalShames, fileCount) =>
 		`${totalShames} shame${totalShames !== 1 ? "s" : ""} in ${fileCount} file${
 			fileCount !== 1 ? "s" : ""
 		}`,
-	previewTitlePath: (relativePath) => `File: ${relativePath}`,
 	scanningStatusMessage: "CodeShamer is scanning your workspace...",
 	scanCompletedStatusMessage: (files, shames) =>
 		`CodeShamer: ${shames} shame${shames !== 1 ? "s" : ""} in ${files} file${
@@ -391,6 +453,7 @@ const en: Locale = {
 	details: (score: number, roast: string) =>
 		`🔥 Shame ${score}/10 — ${roast}`,
 	shameMessage: (messageKey: string) => messages[messageKey] ?? messageKey,
+	hintMessage: (hintKey: string) => hints[hintKey] ?? "",
 	t: (key: string) => {
 		return (
 			messages[key] ??
