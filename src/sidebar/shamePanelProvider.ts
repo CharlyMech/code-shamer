@@ -39,9 +39,6 @@ export class ShamePanelProvider implements vscode.WebviewViewProvider {
 				vscode.window.showTextDocument(uri, {
 					selection: new vscode.Range(line, 0, line, 0),
 				});
-			} else if (msg.type === "openDiff") {
-				const uri = vscode.Uri.file(msg.filePath);
-				vscode.commands.executeCommand("code-shamer.scanCurrentFile", uri);
 			}
 		});
 

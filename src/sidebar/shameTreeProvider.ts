@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import { WorkspaceShameResult, FileShameResult, ShameMatch } from "../engine/types";
 import { getLocale } from "../i18n";
+import {
+	formatLineDescription,
+	formatMatchPreview,
+	severityTreeIcon,
+} from "./treeFormatting";
 
 export class FolderNode {
 	constructor(
@@ -83,15 +88,17 @@ export class ShameTreeProvider implements vscode.TreeDataProvider<ShameTreeNode>
 		} else if (element instanceof FileNode) {
 			const fileName =
 				element.file.filePath.split(/[/\\]/).pop() || "File";
+			const count = element.file.matches.length;
 			const item = new vscode.TreeItem(
 				fileName,
 				vscode.TreeItemCollapsibleState.Collapsed
 			);
-			item.description = `${element.file.matches.length}`;
+			item.description = `${count}`;
 			item.resourceUri = vscode.Uri.file(element.file.filePath);
-			item.iconPath = vscode.ThemeIcon.File;
+			// Use workspace file icon (React, TS, etc.) from the file icon theme.
 
 			item.contextValue = "shameFile";
+			item.tooltip = `${fileName} — ${count} shame${count !== 1 ? "s" : ""}`;
 			item.command = {
 				command: "vscode.open",
 				title: "Open File",
@@ -99,11 +106,13 @@ export class ShameTreeProvider implements vscode.TreeDataProvider<ShameTreeNode>
 			};
 			return item;
 		} else if (element instanceof MatchNode) {
-			const preview = element.match.lineText.trim().substring(0, 60);
 			const item = new vscode.TreeItem(
-				`L${element.match.line + 1}  ${preview}`,
+				formatMatchPreview(element.match.lineText),
 				vscode.TreeItemCollapsibleState.None
 			);
+			item.description = formatLineDescription(element.match.line);
+			item.iconPath = severityTreeIcon(element.match.pattern.severity);
+			item.tooltip = `${formatLineDescription(element.match.line)}: ${element.match.lineText.trim()}`;
 
 			const uri = vscode.Uri.file(element.match.filePath);
 			const pos = new vscode.Position(
@@ -127,6 +136,37 @@ export class ShameTreeProvider implements vscode.TreeDataProvider<ShameTreeNode>
 			sum += this.countShames(sub);
 		}
 		return sum;
+	}
+
+	async revealFirstMatch(
+		treeView: vscode.TreeView<ShameTreeNode>,
+		filePath: string
+	): Promise<void> {
+		if (!this.result) {
+			return;
+		}
+		const file = this.result.files.find(
+			(f) => f.filePath === filePath && f.matches.length > 0
+		);
+		if (!file) {
+			return;
+		}
+		const fileNode = new FileNode(file);
+		try {
+			await treeView.reveal(fileNode, {
+				select: true,
+				expand: true,
+				focus: false,
+			});
+			const matchNode = new MatchNode(file.matches[0]);
+			await treeView.reveal(matchNode, {
+				select: true,
+				expand: false,
+				focus: false,
+			});
+		} catch {
+			// tree may still be refreshing
+		}
 	}
 
 	getChildren(element?: ShameTreeNode): vscode.ProviderResult<ShameTreeNode[]> {

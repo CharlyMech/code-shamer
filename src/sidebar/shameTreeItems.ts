@@ -11,7 +11,7 @@ const CATEGORY_ICONS: Record<ShameCategory, string> = {
 };
 
 export class ShameSummaryItem extends vscode.TreeItem {
-	constructor(label: string, description: string, icon: string = "flame") {
+	constructor(label: string, description: string, icon: string = "warning") {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.description = description;
 		this.iconPath = new vscode.ThemeIcon(icon);
